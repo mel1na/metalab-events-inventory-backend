@@ -8,8 +8,9 @@ import (
 )
 
 type CreatePurchaseInput struct {
-	Items       []models.Item `json:"items"`
-	PaymentType string        `json:"payment_type"`
+	Items       []models.Item `json:"items" binding:"required"`
+	PaymentType string        `json:"payment_type" binding:"required"`
+	Tip         float32       `json:"tip"`
 }
 
 func CreatePurchase(c *gin.Context) {
@@ -27,7 +28,7 @@ func CreatePurchase(c *gin.Context) {
 		returnArray = append(returnArray, models.Item{ID: v.ID, Name: item.Name, Quantity: v.Quantity, Price: item.Price})
 	}
 
-	purchase := models.Purchase{Items: returnArray, PaymentType: input.PaymentType, FinalCost: finalCost}
+	purchase := models.Purchase{Items: returnArray, PaymentType: input.PaymentType, Tip: input.Tip, FinalCost: finalCost}
 	models.DB.Create(&purchase)
 
 	c.JSON(http.StatusOK, gin.H{"data": purchase})
@@ -52,8 +53,9 @@ func FindPurchase(c *gin.Context) {
 }
 
 type UpdatePurchaseInput struct {
-	Items       []models.Item `json:"items"`
-	PaymentType string        `json:"payment_type"`
+	Items       []models.Item `json:"items" binding:"required"`
+	PaymentType string        `json:"payment_type" binding:"required"`
+	Tip         float32       `json:"tip"`
 }
 
 func UpdatePurchase(c *gin.Context) {
@@ -78,7 +80,7 @@ func UpdatePurchase(c *gin.Context) {
 		returnArray = append(returnArray, models.Item{ID: v.ID, Name: item.Name, Quantity: v.Quantity, Price: item.Price})
 	}
 
-	updatedPurchase := models.Purchase{Items: returnArray, PaymentType: input.PaymentType, FinalCost: finalCost}
+	updatedPurchase := models.Purchase{Items: returnArray, PaymentType: input.PaymentType, Tip: input.Tip, FinalCost: finalCost}
 
 	models.DB.Model(&purchase).Updates(&updatedPurchase)
 	c.JSON(http.StatusOK, gin.H{"data": purchase})
