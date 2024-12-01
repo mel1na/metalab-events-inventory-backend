@@ -26,5 +26,5 @@ func main() {
 	router.PATCH("/api/purchases/:id", controllers.UpdatePurchase)
 	router.DELETE("/api/purchases/:id", controllers.DeletePurchase)
 
-	router.Run("localhost:8080")
+	router.Run("0.0.0.0:8080")
 }
