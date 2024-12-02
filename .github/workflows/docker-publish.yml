@@ -6,12 +6,10 @@ name: Publish Docker image
 # documentation.
 
 on:
-  schedule:
-    - cron: '37 13 * * *'
   push:
     branches: [ "main" ]
     # Publish semver tags as releases.
-    tags: [ 'v*.*.*' ]
+    tags: [ 'v*.*.*', 'latest' ]
   pull_request:
     branches: [ "main" ]
 
