@@ -23,9 +23,9 @@ func CreatePurchase(c *gin.Context) {
 	}
 
 	for _, v := range input.Items {
-		item := FindItemById(v.ID)
+		item := FindItemById(v.ItemID)
 		finalCost += (item.Price * float32(v.Quantity)) + input.Tip
-		returnArray = append(returnArray, models.Item{ID: v.ID, Name: item.Name, Quantity: v.Quantity, Price: item.Price})
+		returnArray = append(returnArray, models.Item{ItemID: v.ItemID, Name: item.Name, Quantity: v.Quantity, Price: item.Price})
 	}
 
 	purchase := models.Purchase{Items: returnArray, PaymentType: input.PaymentType, Tip: input.Tip, FinalCost: finalCost}
@@ -75,9 +75,9 @@ func UpdatePurchase(c *gin.Context) {
 	}
 
 	for _, v := range input.Items {
-		item := FindItemById(v.ID)
+		item := FindItemById(v.ItemID)
 		finalCost += (item.Price * float32(v.Quantity)) + input.Tip
-		returnArray = append(returnArray, models.Item{ID: v.ID, Name: item.Name, Quantity: v.Quantity, Price: item.Price})
+		returnArray = append(returnArray, models.Item{ItemID: v.ItemID, Name: item.Name, Quantity: v.Quantity, Price: item.Price})
 	}
 
 	updatedPurchase := models.Purchase{Items: returnArray, PaymentType: input.PaymentType, Tip: input.Tip, FinalCost: finalCost}
