@@ -1,10 +1,14 @@
 package models
 
-import "time"
+import (
+	"time"
+
+	"github.com/google/uuid"
+)
 
 type Purchase struct {
-	ID          uint      `json:"id"`
-	Items       []Item    `json:"items" gorm:"foreignKey:ID;type:bytes;serializer:gob"`
+	PurchaseID  uuid.UUID `json:"id" gorm:"primaryKey;unique;type:uuid;default:gen_random_uuid()"`
+	Items       []Item    `json:"items" gorm:"foreignKey:ItemID;type:bytes;serializer:gob"`
 	PaymentType string    `json:"payment_type"`
 	Tip         float32   `json:"tip,omitempty"`
 	FinalCost   float32   `json:"final_cost"`
