@@ -29,14 +29,13 @@ func ConnectDatabase() {
 		t := jwt.NewWithClaims(jwt.SigningMethodHS512, jwt.MapClaims{
 			"iss":   "metalab-events-backend",
 			"sub":   "admin",
-			"admin": true,
+			"admin": "true",
 		})
 		s, err := t.SignedString(key)
-		fmt.Println(s)
 		if err != nil {
 			fmt.Println(err)
 		} else {
-			database.Create(&User{Name: "admin", Token: s})
+			database.Create(&User{Name: "admin", Token: s, IsAdmin: "true"})
 			fmt.Printf("Default admin user created with token %s\n", s)
 		}
 	}
