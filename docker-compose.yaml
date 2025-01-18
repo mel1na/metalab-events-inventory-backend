@@ -29,3 +29,7 @@ services:
     environment:
       POSTGRES_USER: 'metalab_events_testing'
       POSTGRES_PASSWORD: 'TESTING_DB_PASSWORD_CHANGE_ME'
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+volumes:
+  pgdata:
