@@ -1,0 +1,31 @@
+services:
+  backend:
+    # image: ghcr.io/mel1na/metalab-events-inventory-backend:latest
+    build: .
+    container_name: metalab_events_backend_testing
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+        restart: true
+    ports:
+      - 127.0.0.1:8080:8080
+    environment:
+      JWT_SECRET: ${JWT_SECRET}
+      DB_HOST: 'metalab_events_db_testing'
+      DB_USER: ${DB_USER}
+      DB_PASS: ${DB_PASS}
+      DB_NAME: ${DB_NAME}
+  db:
+    image: postgres:17
+    container_name: metalab_events_db_testing
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 10s
+      retries: 5
+      start_period: 30s
+      timeout: 10s
+    environment:
+      POSTGRES_USER: 'metalab_events_testing'
+      POSTGRES_PASSWORD: 'TESTING_DB_PASSWORD_CHANGE_ME'

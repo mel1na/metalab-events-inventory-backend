@@ -17,6 +17,9 @@ func main() {
 	if os.Getenv("JWT_SECRET") == "" {
 		panic("no JWT_SECRET specified in environment")
 	}
+	if os.Getenv("DB_USER") == "" || os.Getenv("DB_PASS") == "" {
+		fmt.Println("no DB_USER or DB_PASS specified in environment, consider configuring DB_USER, DB_PASS, DB_NAME and DB_HOST")
+	}
 	router := gin.Default()
 	router.Use(cors.Default())
 
