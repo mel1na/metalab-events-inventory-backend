@@ -21,7 +21,12 @@ func main() {
 		fmt.Println("no DB_USER or DB_PASS specified in environment, consider configuring DB_USER, DB_PASS, DB_NAME and DB_HOST")
 	}
 	router := gin.Default()
-	router.Use(cors.Default())
+	
+	cors_config := cors.DefaultConfig()
+	cors_config.AllowAllOrigins = true
+	cors_config.AddAllowHeaders("Authorization")
+	router.Use(cors.New(cors_config))
+	//router.Use(cors.Default()) // cors.Default() is equal to DefaultConfig with AllowAllOrigins set
 
 	models.ConnectDatabase()
 
