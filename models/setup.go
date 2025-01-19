@@ -22,6 +22,7 @@ func ConnectDatabase() {
 	database.AutoMigrate(&Item{})
 	database.AutoMigrate(&Purchase{})
 	database.AutoMigrate(&User{})
+	database.AutoMigrate(&Group{})
 
 	if database.Limit(1).Find(&User{Name: "admin"}).RowsAffected == 0 {
 
