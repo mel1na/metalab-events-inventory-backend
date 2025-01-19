@@ -3,6 +3,7 @@ package controllers
 import (
 	"metalab/events-inventory-tracker/models"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -16,7 +17,7 @@ type CreatePurchaseInput struct {
 func CreatePurchase(c *gin.Context) {
 	var input CreatePurchaseInput
 	var finalCost = float32(0.00)
-	returnArray := []models.Item{}
+	returnedItemsArray := []models.Item{}
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -25,10 +26,10 @@ func CreatePurchase(c *gin.Context) {
 	for _, v := range input.Items {
 		item := FindItemById(v.ItemID)
 		finalCost += (item.Price * float32(v.Quantity)) + input.Tip
-		returnArray = append(returnArray, models.Item{ItemID: v.ItemID, Name: item.Name, Quantity: v.Quantity, Price: item.Price})
+		returnedItemsArray = append(returnedItemsArray, models.Item{ItemID: v.ItemID, Name: item.Name, Quantity: v.Quantity, Price: item.Price})
 	}
 
-	purchase := models.Purchase{Items: returnArray, PaymentType: input.PaymentType, Tip: input.Tip, FinalCost: finalCost}
+	purchase := models.Purchase{Items: returnedItemsArray, PaymentType: input.PaymentType, Tip: input.Tip, FinalCost: finalCost}
 	models.DB.Create(&purchase)
 
 	c.JSON(http.StatusOK, gin.H{"data": purchase})
@@ -76,6 +77,9 @@ func UpdatePurchase(c *gin.Context) {
 
 	for _, v := range input.Items {
 		item := FindItemById(v.ItemID)
+		if item.Name == "No item found" {
+			c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": "itemid " + strconv.FormatUint(uint64(v.ItemID), 10) + " not found"})
+		}
 		finalCost += (item.Price * float32(v.Quantity)) + input.Tip
 		returnArray = append(returnArray, models.Item{ItemID: v.ItemID, Name: item.Name, Quantity: v.Quantity, Price: item.Price})
 	}
