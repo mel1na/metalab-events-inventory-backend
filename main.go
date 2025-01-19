@@ -28,6 +28,12 @@ func main() {
 	router.PATCH("/api/items/:id", validateSignedJwt("admin", "true"), controllers.UpdateItem)
 	router.DELETE("/api/items/:id", validateSignedJwt("admin", "true"), controllers.DeleteItem)
 
+	router.POST("/api/groups", validateSignedJwt("iss", "metalab-events-backend"), controllers.CreateGroup)
+	router.GET("/api/groups", controllers.FindGroups)
+	router.GET("/api/groups/:id", controllers.FindGroup)
+	router.PATCH("/api/groups/:id", validateSignedJwt("admin", "true"), controllers.UpdateGroup)
+	router.DELETE("/api/groups/:id", validateSignedJwt("admin", "true"), controllers.DeleteGroup)
+
 	router.POST("/api/purchases", validateSignedJwt("iss", "metalab-events-backend"), controllers.CreatePurchase)
 	router.GET("/api/purchases", controllers.FindPurchases)
 	router.GET("/api/purchases/:id", controllers.FindPurchase)
