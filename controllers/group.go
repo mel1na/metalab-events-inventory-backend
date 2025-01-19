@@ -23,6 +23,10 @@ func CreateGroup(c *gin.Context) {
 
 	for _, v := range input.Items {
 		item := FindItemById(v.ItemID)
+		if item.Name == "No item found" {
+			c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": "itemid " + strconv.FormatUint(uint64(v.ItemID), 10) + " not found"})
+			return
+		}
 		containedItemsArray = append(containedItemsArray, models.Item{ItemID: item.ItemID, Name: item.Name, Price: item.Price})
 	}
 
@@ -42,7 +46,7 @@ func FindGroups(c *gin.Context) {
 func FindGroup(c *gin.Context) {
 	var group models.Group
 
-	if err := models.DB.Where("id = ?", c.Param("id")).First(&group).Error; err != nil {
+	if err := models.DB.Where("group_id = ?", c.Param("id")).First(&group).Error; err != nil {
 		c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": err.Error()})
 		return
 	}
@@ -52,7 +56,7 @@ func FindGroup(c *gin.Context) {
 
 func UpdateGroup(c *gin.Context) {
 	var group models.Group
-	if err := models.DB.Where("id = ?", c.Param("id")).First(&group).Error; err != nil {
+	if err := models.DB.Where("group_id = ?", c.Param("id")).First(&group).Error; err != nil {
 		c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": "record not found"})
 		return
 	}
@@ -81,7 +85,7 @@ func UpdateGroup(c *gin.Context) {
 
 func DeleteGroup(c *gin.Context) {
 	var group models.Group
-	if err := models.DB.Where("id = ?", c.Param("id")).First(&group).Error; err != nil {
+	if err := models.DB.Where("group_id = ?", c.Param("id")).First(&group).Error; err != nil {
 		c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": "record not found"})
 		return
 	}

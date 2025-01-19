@@ -36,7 +36,7 @@ func FindItems(c *gin.Context) {
 func FindItem(c *gin.Context) {
 	var item models.Item
 
-	if err := models.DB.Where("id = ?", c.Param("id")).First(&item).Error; err != nil {
+	if err := models.DB.Where("item_id = ?", c.Param("id")).First(&item).Error; err != nil {
 		c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": err.Error()})
 		return
 	}
@@ -47,7 +47,7 @@ func FindItem(c *gin.Context) {
 func FindItemById(id uint) models.Item {
 	var item models.Item
 
-	if err := models.DB.Where("id = ?", id).First(&item).Error; err != nil {
+	if err := models.DB.Where("item_id = ?", id).First(&item).Error; err != nil {
 		return models.Item{Name: "No item found", Quantity: 0, Price: 0.00}
 	}
 
@@ -62,7 +62,7 @@ type UpdateItemInput struct {
 
 func UpdateItem(c *gin.Context) {
 	var item models.Item
-	if err := models.DB.Where("id = ?", c.Param("id")).First(&item).Error; err != nil {
+	if err := models.DB.Where("item_id = ?", c.Param("id")).First(&item).Error; err != nil {
 		c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": "record not found"})
 		return
 	}
@@ -82,7 +82,7 @@ func UpdateItem(c *gin.Context) {
 
 func DeleteItem(c *gin.Context) {
 	var item models.Item
-	if err := models.DB.Where("id = ?", c.Param("id")).First(&item).Error; err != nil {
+	if err := models.DB.Where("item_id = ?", c.Param("id")).First(&item).Error; err != nil {
 		c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": "record not found"})
 		return
 	}

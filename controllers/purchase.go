@@ -45,7 +45,7 @@ func FindPurchases(c *gin.Context) {
 func FindPurchase(c *gin.Context) {
 	var purchase models.Purchase
 
-	if err := models.DB.Where("id = ?", c.Param("id")).First(&purchase).Error; err != nil {
+	if err := models.DB.Where("purchase_id = ?", c.Param("id")).First(&purchase).Error; err != nil {
 		c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": err.Error()})
 		return
 	}
@@ -61,7 +61,7 @@ type UpdatePurchaseInput struct {
 
 func UpdatePurchase(c *gin.Context) {
 	var purchase models.Purchase
-	if err := models.DB.Where("id = ?", c.Param("id")).First(&purchase).Error; err != nil {
+	if err := models.DB.Where("purchase_id = ?", c.Param("id")).First(&purchase).Error; err != nil {
 		c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": "record not found"})
 		return
 	}
@@ -92,7 +92,7 @@ func UpdatePurchase(c *gin.Context) {
 
 func DeletePurchase(c *gin.Context) {
 	var purchase models.Purchase
-	if err := models.DB.Where("id = ?", c.Param("id")).First(&purchase).Error; err != nil {
+	if err := models.DB.Where("purchase_id = ?", c.Param("id")).First(&purchase).Error; err != nil {
 		c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": "record not found"})
 		return
 	}
