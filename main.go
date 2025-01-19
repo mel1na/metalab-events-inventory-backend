@@ -28,7 +28,7 @@ func main() {
 	router.PATCH("/api/items/:id", validateSignedJwt("admin", "true"), controllers.UpdateItem)
 	router.DELETE("/api/items/:id", validateSignedJwt("admin", "true"), controllers.DeleteItem)
 
-	router.POST("/api/groups", validateSignedJwt("iss", "metalab-events-backend"), controllers.CreateGroup)
+	router.POST("/api/groups", validateSignedJwt("admin", "true"), controllers.CreateGroup)
 	router.GET("/api/groups", controllers.FindGroups)
 	router.GET("/api/groups/:id", controllers.FindGroup)
 	router.PATCH("/api/groups/:id", validateSignedJwt("admin", "true"), controllers.UpdateGroup)
