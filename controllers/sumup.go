@@ -8,7 +8,6 @@ import (
 	sumup_models "metalab/events-inventory-tracker/models/sumup"
 	"metalab/events-inventory-tracker/sumup_integration"
 	"net/http"
-	"os"
 
 	"github.com/gin-gonic/gin"
 	"github.com/sumup/sumup-go"
@@ -40,7 +39,7 @@ func CreateReader(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"data": db_reader})
 }
 
-func CreateReaderCheckout(c *gin.Context) {
+/*func CreateReaderCheckout(c *gin.Context) {
 	var input sumup.CreateReaderCheckout
 	var returnUrl string = os.Getenv("SUMUP_RETURN_URL")
 	if input_err := c.ShouldBindJSON(&input); input_err != nil {
@@ -62,11 +61,12 @@ func CreateReaderCheckout(c *gin.Context) {
 		return
 	}
 
+	fmt.Printf("creating checkout with callback uri %s", returnUrl)
 	//db_checkout := sumup.CreateReaderCheckout201Response{Data: &sumup.CreateReaderCheckout201ResponseData{ClientTransactionId: response.Data.ClientTransactionId}}
 	//models.DB.Create(&db_checkout)
 
 	c.JSON(http.StatusOK, gin.H{"data": response})
-}
+}*/
 
 func FindReaders(c *gin.Context) {
 	var readers []sumup.Reader
@@ -161,7 +161,7 @@ func TerminateReaderCheckout(c *gin.Context) {
 	} else if input.ReaderId == "" && input.ReaderName != "" { //name defined, id undefined
 		var db_reader *sumup_models.Reader
 		var find_err error
-		db_reader, find_err = FindReaderByName(input.ReaderId)
+		db_reader, find_err = FindReaderByName(input.ReaderName)
 		if find_err != nil {
 			fmt.Printf("error finding reader by name: %s\n", find_err.Error())
 			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": find_err.Error()})

@@ -50,7 +50,7 @@ func main() {
 	router.DELETE("/api/users", validateSignedJwt("admin", "true"), controllers.DeleteUser)
 
 	router.POST("/api/payments/readers/link", validateSignedJwt("admin", "true"), controllers.CreateReader)
-	router.POST("/api/payments/checkout", validateSignedJwt("iss", "metalab-events-backend"), controllers.CreateReaderCheckout)
+	//router.POST("/api/payments/checkout", validateSignedJwt("iss", "metalab-events-backend"), controllers.CreateReaderCheckout)
 	router.GET("/api/payments/readers", validateSignedJwt("iss", "metalab-events-backend"), controllers.FindApiReaders)
 	router.GET("/api/payments/readers/:id", validateSignedJwt("iss", "metalab-events-backend"), controllers.FindReader)
 	router.DELETE("/api/payments/terminate", validateSignedJwt("iss", "metalab-events-backend"), controllers.TerminateReaderCheckout)
