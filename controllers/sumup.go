@@ -3,10 +3,12 @@ package controllers
 import (
 	"context"
 	"fmt"
+	"io"
 	"metalab/events-inventory-tracker/models"
 	sumup_models "metalab/events-inventory-tracker/models/sumup"
 	"metalab/events-inventory-tracker/sumup_integration"
 	"net/http"
+	"os"
 
 	"github.com/gin-gonic/gin"
 	"github.com/sumup/sumup-go"
@@ -40,6 +42,7 @@ func CreateReader(c *gin.Context) {
 
 func CreateReaderCheckout(c *gin.Context) {
 	var input sumup.CreateReaderCheckout
+	var returnUrl string = os.Getenv("SUMUP_RETURN_URL")
 	if input_err := c.ShouldBindJSON(&input); input_err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": input_err.Error()})
 		return
@@ -52,7 +55,7 @@ func CreateReaderCheckout(c *gin.Context) {
 		return
 	}
 
-	response, checkout_err := sumup_integration.SumupClient.Readers.CreateCheckout(context.Background(), *sumup_integration.SumupAccount.MerchantProfile.MerchantCode, string(db_reader.ReaderId), sumup.CreateReaderCheckoutBody{TotalAmount: sumup.CreateReaderCheckoutAmount{Currency: "EUR", MinorUnit: 2, Value: input.TotalAmount.Value}})
+	response, checkout_err := sumup_integration.SumupClient.Readers.CreateCheckout(context.Background(), *sumup_integration.SumupAccount.MerchantProfile.MerchantCode, string(db_reader.ReaderId), sumup.CreateReaderCheckoutBody{ReturnUrl: &returnUrl, TotalAmount: sumup.CreateReaderCheckoutAmount{Currency: "EUR", MinorUnit: 2, Value: input.TotalAmount.Value}})
 	if checkout_err != nil {
 		fmt.Printf("error while creating reader: %s\n", checkout_err.Error())
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": checkout_err.Error()})
@@ -240,5 +243,15 @@ func UnlinkReader(c *gin.Context) {
 		return
 	}
 
-	c.AbortWithStatus(204)
+	c.JSON(http.StatusOK, gin.H{"data": "success"})
+}
+
+func GetIncomingWebhook(c *gin.Context) {
+	body, err := io.ReadAll(c.Request.Body)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	fmt.Printf("incoming webhook data: %s\n", body)
+	c.JSON(http.StatusOK, gin.H{"data": "success"})
 }
