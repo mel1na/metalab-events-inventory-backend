@@ -95,16 +95,6 @@ func FindReader(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"data": reader})
 }
 
-func FindReaderById(id string) (*sumup_models.Reader, error) {
-	var reader sumup_models.Reader
-
-	if err := models.DB.Where("reader_id = ?", id).First(&reader).Error; err != nil {
-		return nil, err
-	}
-
-	return &reader, nil
-}
-
 func FindReaderByName(name string) (*sumup_models.Reader, error) {
 	var reader sumup_models.Reader
 
@@ -177,7 +167,6 @@ type UnlinkReaderInput struct {
 	ReaderName string `json:"name"`
 }
 
-// TODO: add removal from database on unlink
 func UnlinkReader(c *gin.Context) {
 	var input UnlinkReaderInput
 	var db_reader *sumup_models.Reader
@@ -209,7 +198,6 @@ func UnlinkReader(c *gin.Context) {
 			fmt.Printf("error while deleting reader by name: %s\n", delete_err.Error())
 			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": delete_err.Error()})
 		}
-		//models.DB.Delete(db_reader)
 	} else if input.ReaderId != "" && input.ReaderName == "" { //name undefined
 		/*var find_err error
 		db_reader, find_err = FindReaderById(input.ReaderId)
@@ -230,7 +218,6 @@ func UnlinkReader(c *gin.Context) {
 			fmt.Printf("error while deleting reader by id: %s\n", delete_err.Error())
 			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": delete_err.Error()})
 		}
-		//models.DB.Delete(&db_reader)
 	} else {
 		fmt.Printf("unknown error while unlinking reader\n")
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "unknown error while unlinking reader"})
