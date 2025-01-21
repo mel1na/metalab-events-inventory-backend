@@ -3,6 +3,7 @@ package controllers
 import (
 	"fmt"
 	"metalab/events-inventory-tracker/models"
+	sumup_models "metalab/events-inventory-tracker/models/sumup"
 	"metalab/events-inventory-tracker/sumup_integration"
 	"net/http"
 	"strconv"
@@ -42,7 +43,7 @@ func CreatePurchase(c *gin.Context) {
 			return
 		}
 	}
-	purchase := models.Purchase{Items: returnedItemsArray, PaymentType: input.PaymentType, TransactionId: transaction_id, Tip: input.Tip, FinalCost: finalCost}
+	purchase := models.Purchase{Items: returnedItemsArray, PaymentType: input.PaymentType, TransactionId: transaction_id, TransactionStatus: sumup_models.TransactionFullStatusPending, Tip: input.Tip, FinalCost: finalCost}
 	models.DB.Create(&purchase)
 
 	c.JSON(http.StatusOK, gin.H{"data": purchase})
