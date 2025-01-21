@@ -261,11 +261,13 @@ func GetIncomingWebhook(c *gin.Context) {
 
 	insert_data := models.Purchase{TransactionStatus: input.Payload.Status}
 
-	if err := models.DB.Where("transaction_id = ?", input.Payload.ClientTransactionId).Updates(insert_data).Error; err != nil {
+	/*if err := models.DB.Where("transaction_id = ?", input.Payload.ClientTransactionId).Updates(insert_data).Error; err != nil {
 		fmt.Printf("error while updating updating checkout status: %s\n", err.Error())
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
-	}
+	}*/
+
+	models.DB.Where("transaction_id = ?", input.Payload.ClientTransactionId).Updates(insert_data)
 
 	/*body, err := io.ReadAll(c.Request.Body)
 	if err != nil {
