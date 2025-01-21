@@ -19,6 +19,11 @@ func CreateReader(c *gin.Context) {
 		return
 	}
 
+	if string(input.PairingCode) == "" {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": "missing pairing code"})
+		return
+	}
+
 	reader, err := sumup_integration.SumupClient.Readers.Create(context.Background(), *sumup_integration.SumupAccount.MerchantProfile.MerchantCode, sumup.CreateReaderBody{Name: input.Name, PairingCode: sumup.ReaderPairingCode(input.PairingCode)})
 	if err != nil {
 		fmt.Printf("error while creating reader: %s\n", err.Error())
@@ -135,7 +140,8 @@ func FindReaderIdByName(name string) *sumup_models.ReaderId {
 }
 
 type TerminateReaderInput struct {
-	ReaderId string `json:"id"`
+	ReaderId   string `json:"id"`
+	ReaderName string `json:"name"`
 }
 
 // TODO: handle failed transactions via callback from sumup api
@@ -146,17 +152,35 @@ func TerminateReaderCheckout(c *gin.Context) {
 		return
 	}
 
-	db_reader, find_err := FindReaderByName(input.ReaderId)
-	if find_err != nil {
-		fmt.Printf("error finding reader by name: %s\n", find_err.Error())
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": find_err.Error()})
+	if input.ReaderId == "" && input.ReaderName == "" {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": "reader id/name missing"})
 		return
-	}
+	} else if input.ReaderId == "" && input.ReaderName != "" { //name defined, id undefined
+		var db_reader *sumup_models.Reader
+		var find_err error
+		db_reader, find_err = FindReaderByName(input.ReaderId)
+		if find_err != nil {
+			fmt.Printf("error finding reader by name: %s\n", find_err.Error())
+			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": find_err.Error()})
+			return
+		}
 
-	terminate_err := sumup_integration.SumupClient.Readers.TerminateCheckout(context.Background(), *sumup_integration.SumupAccount.MerchantProfile.MerchantCode, string(db_reader.ReaderId))
-	if terminate_err != nil {
-		fmt.Printf("error while terminating checkout: %s\n", terminate_err.Error())
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": terminate_err.Error()})
+		terminate_err := sumup_integration.SumupClient.Readers.TerminateCheckout(context.Background(), *sumup_integration.SumupAccount.MerchantProfile.MerchantCode, string(db_reader.ReaderId)) //uses reader id from db, retrieved from name
+		if terminate_err != nil {
+			fmt.Printf("error while terminating checkout by name: %s\n", terminate_err.Error())
+			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": terminate_err.Error()})
+			return
+		}
+	} else if input.ReaderId != "" && input.ReaderName == "" { //name undefined, id defined
+		terminate_err := sumup_integration.SumupClient.Readers.TerminateCheckout(context.Background(), *sumup_integration.SumupAccount.MerchantProfile.MerchantCode, input.ReaderId) // uses reader id from input
+		if terminate_err != nil {
+			fmt.Printf("error while terminating checkout by id: %s\n", terminate_err.Error())
+			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": terminate_err.Error()})
+			return
+		}
+	} else {
+		fmt.Printf("unknown error while terminating checkout\n")
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "unknown error while terminating checkout"})
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"data": "success"})
@@ -169,7 +193,6 @@ type UnlinkReaderInput struct {
 
 func UnlinkReader(c *gin.Context) {
 	var input UnlinkReaderInput
-	var db_reader *sumup_models.Reader
 
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -180,6 +203,7 @@ func UnlinkReader(c *gin.Context) {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": "reader id/name missing"})
 		return
 	} else if input.ReaderId == "" && input.ReaderName != "" { //name defined
+		var db_reader *sumup_models.Reader
 		var find_err error
 		db_reader, find_err = FindReaderByName(input.ReaderName)
 		if find_err != nil {
@@ -199,14 +223,6 @@ func UnlinkReader(c *gin.Context) {
 			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": delete_err.Error()})
 		}
 	} else if input.ReaderId != "" && input.ReaderName == "" { //name undefined
-		/*var find_err error
-		db_reader, find_err = FindReaderById(input.ReaderId)
-		if find_err != nil {
-			fmt.Printf("error finding reader by id: %s\n", find_err.Error())
-			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": find_err.Error()})
-			return
-		}*/
-
 		unlink_err := sumup_integration.SumupClient.Readers.DeleteReader(context.Background(), *sumup_integration.SumupAccount.MerchantProfile.MerchantCode, sumup.ReaderId(input.ReaderId))
 		if unlink_err != nil {
 			fmt.Printf("error while unlinking reader by id: %s\n", unlink_err.Error())
