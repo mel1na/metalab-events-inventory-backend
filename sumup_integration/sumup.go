@@ -20,7 +20,7 @@ func Login() {
 		return
 	}
 
-	fmt.Printf("SumUp API: authorized for merchant %q\n", *account.MerchantProfile.MerchantCode)
+	fmt.Printf("SumUp API: authorized for merchant %q\n\n", *account.MerchantProfile.MerchantCode)
 	SumupAccount = account
 }
 
