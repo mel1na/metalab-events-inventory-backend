@@ -38,35 +38,6 @@ func CreateReader(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"data": db_reader})
 }
 
-/*func CreateReaderCheckout(c *gin.Context) {
-	var input sumup.CreateReaderCheckout
-	var returnUrl string = os.Getenv("SUMUP_RETURN_URL")
-	if input_err := c.ShouldBindJSON(&input); input_err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": input_err.Error()})
-		return
-	}
-
-	db_reader, find_err := FindReaderByName("Bar")
-	if find_err != nil {
-		fmt.Printf("error finding reader by name: %s\n", find_err.Error())
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": find_err.Error()})
-		return
-	}
-
-	response, checkout_err := sumup_integration.SumupClient.Readers.CreateCheckout(context.Background(), *sumup_integration.SumupAccount.MerchantProfile.MerchantCode, string(db_reader.ReaderId), sumup.CreateReaderCheckoutBody{ReturnUrl: &returnUrl, TotalAmount: sumup.CreateReaderCheckoutAmount{Currency: "EUR", MinorUnit: 2, Value: input.TotalAmount.Value}})
-	if checkout_err != nil {
-		fmt.Printf("error while creating reader: %s\n", checkout_err.Error())
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": checkout_err.Error()})
-		return
-	}
-
-	fmt.Printf("creating checkout with callback uri %s", returnUrl)
-	//db_checkout := sumup.CreateReaderCheckout201Response{Data: &sumup.CreateReaderCheckout201ResponseData{ClientTransactionId: response.Data.ClientTransactionId}}
-	//models.DB.Create(&db_checkout)
-
-	c.JSON(http.StatusOK, gin.H{"data": response})
-}*/
-
 func FindReaders(c *gin.Context) {
 	var readers []sumup.Reader
 	err := models.DB.Find(&readers).Error
@@ -252,28 +223,9 @@ func GetIncomingWebhook(c *gin.Context) {
 		return
 	}
 
-	/*db_transaction, find_err := FindPurchaseByTransactionId(input.Payload.ClientTransactionId)
-	if find_err != nil {
-		fmt.Printf("error while deleting purchase by transaction id: %s\n", find_err.Error())
-		c.JSON(http.StatusBadRequest, gin.H{"error": find_err.Error()})
-		return
-	}*/
-
 	insert_data := models.Purchase{TransactionStatus: input.Payload.Status}
-
-	/*if err := models.DB.Where("transaction_id = ?", input.Payload.ClientTransactionId).Updates(insert_data).Error; err != nil {
-		fmt.Printf("error while updating updating checkout status: %s\n", err.Error())
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}*/
 
 	models.DB.Where("transaction_id = ?", input.Payload.ClientTransactionId).Updates(insert_data)
 
-	/*body, err := io.ReadAll(c.Request.Body)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-	fmt.Printf("incoming webhook data: %s\n", body)*/
 	c.JSON(http.StatusOK, gin.H{"data": "success"})
 }
