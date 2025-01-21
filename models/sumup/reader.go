@@ -96,3 +96,27 @@ const (
 	ReaderStatusProcessing ReaderStatus = "processing"
 	ReaderStatusUnknown    ReaderStatus = "unknown"
 )
+
+type ReaderCheckoutStatusChange struct {
+	Id        string                            `json:"id"`
+	EventType string                            `json:"event_type"`
+	Payload   ReaderCheckoutStatusChangePayload `json:"payload" gorm:"foreignKey:ClientTransactionId;type:bytes;serializer:gob"`
+	UpdatedAt time.Time                         `json:"timestamp"`
+}
+
+type ReaderCheckoutStatusChangePayload struct {
+	ClientTransactionId string                `json:"client_transaction_id"`
+	MerchantCode        string                `json:"merchant_code"`
+	Status              TransactionFullStatus `json:"status"`
+	TransactionId       string                `json:"transaction_id,omitempty"`
+}
+
+// TransactionFullStatus: Current status of the transaction.
+type TransactionFullStatus string
+
+const (
+	TransactionFullStatusCancelled  TransactionFullStatus = "cancelled"
+	TransactionFullStatusFailed     TransactionFullStatus = "failed"
+	TransactionFullStatusPending    TransactionFullStatus = "pending"
+	TransactionFullStatusSuccessful TransactionFullStatus = "successful"
+)

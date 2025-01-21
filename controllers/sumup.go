@@ -3,7 +3,6 @@ package controllers
 import (
 	"context"
 	"fmt"
-	"io"
 	"metalab/events-inventory-tracker/models"
 	sumup_models "metalab/events-inventory-tracker/models/sumup"
 	"metalab/events-inventory-tracker/sumup_integration"
@@ -247,11 +246,32 @@ func UnlinkReader(c *gin.Context) {
 }
 
 func GetIncomingWebhook(c *gin.Context) {
-	body, err := io.ReadAll(c.Request.Body)
+	var input sumup_models.ReaderCheckoutStatusChange
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	/*db_transaction, find_err := FindPurchaseByTransactionId(input.Payload.ClientTransactionId)
+	if find_err != nil {
+		fmt.Printf("error while deleting purchase by transaction id: %s\n", find_err.Error())
+		c.JSON(http.StatusBadRequest, gin.H{"error": find_err.Error()})
+		return
+	}*/
+
+	insert_data := models.Purchase{TransactionStatus: input.Payload.Status}
+
+	if err := models.DB.Where("transaction_id = ?", input.Payload.ClientTransactionId).Updates(insert_data).Error; err != nil {
+		fmt.Printf("error while updating updating checkout status: %s\n", err.Error())
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	/*body, err := io.ReadAll(c.Request.Body)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	fmt.Printf("incoming webhook data: %s\n", body)
+	fmt.Printf("incoming webhook data: %s\n", body)*/
 	c.JSON(http.StatusOK, gin.H{"data": "success"})
 }
