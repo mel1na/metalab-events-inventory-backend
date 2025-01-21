@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"metalab/events-inventory-tracker/controllers"
 	"metalab/events-inventory-tracker/models"
+	"metalab/events-inventory-tracker/sumup_integration"
 	"net/http"
 	"os"
 	"strings"
@@ -21,6 +22,8 @@ func main() {
 	router.Use(cors.Default())
 
 	models.ConnectDatabase()
+
+	sumup_integration.Login()
 
 	router.POST("/api/items", validateSignedJwt("admin", "true"), controllers.CreateItem)
 	router.GET("/api/items", controllers.FindItems)
@@ -45,6 +48,13 @@ func main() {
 	router.GET("/api/users/:id", validateSignedJwt("admin", "true"), controllers.FindUser)
 	router.PATCH("/api/users", validateSignedJwt("admin", "true"), controllers.UpdateUser)
 	router.DELETE("/api/users", validateSignedJwt("admin", "true"), controllers.DeleteUser)
+
+	router.POST("/api/payments/readers/link", validateSignedJwt("admin", "true"), controllers.CreateReader)
+	router.POST("/api/payments/checkout", validateSignedJwt("iss", "metalab-events-backend"), controllers.CreateReaderCheckout)
+	router.GET("/api/payments/readers", validateSignedJwt("iss", "metalab-events-backend"), controllers.FindApiReaders)
+	router.GET("/api/payments/readers/:id", validateSignedJwt("iss", "metalab-events-backend"), controllers.FindReader)
+	router.DELETE("/api/payments/terminate", validateSignedJwt("iss", "metalab-events-backend"), controllers.TerminateReaderCheckout)
+	router.DELETE("/api/payments/readers/unlink", validateSignedJwt("admin", "true"), controllers.UnlinkReader)
 
 	router.GET("/api/token/validate", validateSignedJwt("iss", "metalab-events-backend"), controllers.ValidateToken)
 

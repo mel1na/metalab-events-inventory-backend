@@ -8,9 +8,9 @@ import (
 )
 
 type CreateItemInput struct {
-	Name     string  `json:"name" binding:"required"`
-	Quantity uint    `json:"quantity"`
-	Price    float32 `json:"price"` //not required so price can be set to 0 and still work
+	Name     string `json:"name" binding:"required"`
+	Quantity uint   `json:"quantity"`
+	Price    uint   `json:"price"` //not required so price can be set to 0 and still work
 }
 
 func CreateItem(c *gin.Context) {
@@ -48,16 +48,16 @@ func FindItemById(id uint) models.Item {
 	var item models.Item
 
 	if err := models.DB.Where("item_id = ?", id).First(&item).Error; err != nil {
-		return models.Item{Name: "No item found", Quantity: 0, Price: 0.00}
+		return models.Item{Name: "No item found", Quantity: 0, Price: 0}
 	}
 
 	return item
 }
 
 type UpdateItemInput struct {
-	Name     string  `json:"name" binding:"required"`
-	Quantity uint    `json:"quantity"`
-	Price    float32 `json:"price"` //not required so price can be set to 0 and still work
+	Name     string `json:"name" binding:"required"`
+	Quantity uint   `json:"quantity"`
+	Price    uint   `json:"price"` //not required so price can be set to 0 and still work
 }
 
 func UpdateItem(c *gin.Context) {

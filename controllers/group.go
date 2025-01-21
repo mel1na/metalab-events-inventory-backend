@@ -22,12 +22,12 @@ func CreateGroup(c *gin.Context) {
 	}
 
 	for _, v := range input.Items {
-		item := FindItemById(v.ItemID)
+		item := FindItemById(v.ItemId)
 		if item.Name == "No item found" {
-			c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": "itemid " + strconv.FormatUint(uint64(v.ItemID), 10) + " not found"})
+			c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": "itemid " + strconv.FormatUint(uint64(v.ItemId), 10) + " not found"})
 			return
 		}
-		containedItemsArray = append(containedItemsArray, models.Item{ItemID: item.ItemID, Name: item.Name, Price: item.Price})
+		containedItemsArray = append(containedItemsArray, models.Item{ItemId: item.ItemId, Name: item.Name, Price: item.Price})
 	}
 
 	group := models.Group{Name: input.Name, Items: containedItemsArray}
@@ -70,11 +70,11 @@ func UpdateGroup(c *gin.Context) {
 	}
 
 	for _, v := range input.Items {
-		item := FindItemById(v.ItemID)
+		item := FindItemById(v.ItemId)
 		if item.Name == "No item found" {
-			c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": "itemid " + strconv.FormatUint(uint64(v.ItemID), 10) + " not found"})
+			c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": "itemid " + strconv.FormatUint(uint64(v.ItemId), 10) + " not found"})
 		}
-		containedItemsArray = append(containedItemsArray, models.Item{ItemID: item.ItemID, Name: item.Name, Price: item.Price})
+		containedItemsArray = append(containedItemsArray, models.Item{ItemId: item.ItemId, Name: item.Name, Price: item.Price})
 	}
 
 	updatedGroup := models.Group{Name: input.Name, Items: containedItemsArray}

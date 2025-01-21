@@ -2,6 +2,7 @@ package models
 
 import (
 	"fmt"
+	sumup_models "metalab/events-inventory-tracker/models/sumup"
 	"os"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -12,7 +13,7 @@ import (
 var DB *gorm.DB
 
 func ConnectDatabase() {
-	dsn := "host=events-postgres user=test password=test dbname=test port=5432 sslmode=disable timezone=Europe/Vienna"
+	dsn := "host=localhost user=test password=test dbname=test port=5432 sslmode=disable timezone=Europe/Vienna"
 	database, err := gorm.Open(postgres.Open(dsn), &gorm.Config{}) // change the database provider if necessary
 
 	if err != nil {
@@ -23,6 +24,7 @@ func ConnectDatabase() {
 	database.AutoMigrate(&Purchase{})
 	database.AutoMigrate(&User{})
 	database.AutoMigrate(&Group{})
+	database.AutoMigrate(&sumup_models.Reader{})
 
 	if database.Limit(1).Find(&User{Name: "admin"}).RowsAffected == 0 {
 
