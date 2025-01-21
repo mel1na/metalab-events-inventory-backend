@@ -56,7 +56,7 @@ func main() {
 	router.DELETE("/api/payments/terminate", validateSignedJwt("iss", "metalab-events-backend"), controllers.TerminateReaderCheckout)
 	router.DELETE("/api/payments/readers/unlink", validateSignedJwt("admin", "true"), controllers.UnlinkReader)
 
-	router.POST("api/payments/callback", controllers.GetIncomingWebhook)
+	router.POST("/api/payments/callback", controllers.GetIncomingWebhook)
 
 	router.GET("/api/token/validate", validateSignedJwt("iss", "metalab-events-backend"), controllers.ValidateToken)
 
