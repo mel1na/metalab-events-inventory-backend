@@ -53,6 +53,7 @@ func FindPurchases(c *gin.Context) {
 	var purchases []models.Purchase
 	models.DB.Find(&purchases)
 
+	c.Header("Content-Type", "application/json")
 	c.JSON(http.StatusOK, gin.H{"data": purchases})
 }
 
@@ -64,6 +65,7 @@ func FindPurchase(c *gin.Context) {
 		return
 	}
 
+	c.Header("Content-Type", "application/json")
 	c.JSON(http.StatusOK, gin.H{"data": purchase})
 }
 

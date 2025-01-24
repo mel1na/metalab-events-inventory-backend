@@ -19,7 +19,10 @@ func main() {
 		panic("no JWT_SECRET specified in environment")
 	}
 	router := gin.Default()
-	router.Use(cors.Default())
+	cors_config := cors.DefaultConfig()
+	cors_config.AllowAllOrigins = true
+	cors_config.AddAllowHeaders("Authorization")
+	router.Use(cors.New(cors_config))
 
 	models.ConnectDatabase()
 
@@ -65,6 +68,7 @@ func main() {
 
 func validateSignedJwt(claim string, value string) gin.HandlerFunc {
 	return func(c *gin.Context) {
+		c.Header("Content-Type", "application/json")
 		auth_header := c.GetHeader("Authorization")
 		if auth_header == "" {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"message": "Missing Authorization header"})

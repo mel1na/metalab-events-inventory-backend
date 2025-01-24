@@ -30,6 +30,7 @@ func FindItems(c *gin.Context) {
 	var items []models.Item
 	models.DB.Find(&items)
 
+	c.Header("Content-Type", "application/json")
 	c.JSON(http.StatusOK, gin.H{"data": items})
 }
 
@@ -41,6 +42,7 @@ func FindItem(c *gin.Context) {
 		return
 	}
 
+	c.Header("Content-Type", "application/json")
 	c.JSON(http.StatusOK, gin.H{"data": item})
 }
 

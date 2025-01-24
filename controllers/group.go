@@ -40,6 +40,7 @@ func FindGroups(c *gin.Context) {
 	var groups []models.Group
 	models.DB.Find(&groups)
 
+	c.Header("Content-Type", "application/json")
 	c.JSON(http.StatusOK, gin.H{"data": groups})
 }
 
@@ -51,6 +52,7 @@ func FindGroup(c *gin.Context) {
 		return
 	}
 
+	c.Header("Content-Type", "application/json")
 	c.JSON(http.StatusOK, gin.H{"data": group})
 }
 
