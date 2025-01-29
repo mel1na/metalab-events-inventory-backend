@@ -8,15 +8,15 @@ import (
 )
 
 type Purchase struct {
-	PurchaseId        uuid.UUID                          `json:"id" gorm:"primaryKey;unique;type:uuid;default:gen_random_uuid()"`
-	Items             []Item                             `json:"items" gorm:"foreignKey:ItemID;type:bytes;serializer:gob"`
-	PaymentType       string                             `json:"payment_type"`
-	TransactionStatus sumup_models.TransactionFullStatus `json:"status"`
-	TransactionId     string                             `json:"transaction_id,omitempty"`
-	Tip               uint                               `json:"tip,omitempty"`
-	FinalCost         uint                               `json:"final_cost"`
-	CreatedAt         time.Time                          `json:"created_at"`
-	CreatedBy         string                             `json:"created_by"`
+	PurchaseId          uuid.UUID                          `json:"id" gorm:"primaryKey;unique;type:uuid;default:gen_random_uuid()"`
+	Items               []Item                             `json:"items" gorm:"foreignKey:ItemID;type:bytes;serializer:gob"`
+	PaymentType         string                             `json:"payment_type"`
+	TransactionStatus   sumup_models.TransactionFullStatus `json:"status"`
+	ClientTransactionId string                             `json:"transaction_id,omitempty"`
+	Tip                 uint                               `json:"tip,omitempty"`
+	FinalCost           uint                               `json:"final_cost"`
+	CreatedAt           time.Time                          `json:"created_at"`
+	CreatedBy           string                             `json:"created_by"`
 }
 
 // PaymentStatus: The status of the payment object gives information about the current state of the payment.
