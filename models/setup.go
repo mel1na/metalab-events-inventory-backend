@@ -4,6 +4,7 @@ import (
 	"fmt"
 	sumup_models "metalab/events-inventory-tracker/models/sumup"
 	"os"
+	"time"
 
 	"github.com/golang-jwt/jwt/v5"
 	"gorm.io/driver/postgres"
@@ -32,6 +33,7 @@ func ConnectDatabase() {
 		t := jwt.NewWithClaims(jwt.SigningMethodHS512, jwt.MapClaims{
 			"iss":   "metalab-events-backend",
 			"sub":   "admin",
+			"iat":   time.Now().Unix(),
 			"admin": "true",
 		})
 		s, err := t.SignedString(key)

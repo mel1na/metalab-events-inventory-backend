@@ -5,6 +5,7 @@ import (
 	"metalab/events-inventory-tracker/models"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
@@ -26,6 +27,7 @@ func CreateUser(c *gin.Context) {
 	t := jwt.NewWithClaims(jwt.SigningMethodHS512, jwt.MapClaims{
 		"iss":   "metalab-events-backend",
 		"sub":   input.Name,
+		"iat":   time.Now().Unix(),
 		"admin": input.IsAdmin,
 	})
 	s, err := t.SignedString(key)
