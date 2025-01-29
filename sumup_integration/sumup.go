@@ -24,9 +24,9 @@ func Login() {
 	SumupAccount = account
 }
 
-func StartReaderCheckout(ReaderId string, TotalAmount uint) (ClientTransactionId string, Error error) {
+func StartReaderCheckout(ReaderId string, TotalAmount uint, Description *string) (ClientTransactionId string, Error error) {
 	var returnUrl string = os.Getenv("SUMUP_RETURN_URL")
-	response, checkout_err := SumupClient.Readers.CreateCheckout(context.Background(), *SumupAccount.MerchantProfile.MerchantCode, ReaderId, sumup.CreateReaderCheckoutBody{ReturnUrl: &returnUrl, TotalAmount: sumup.CreateReaderCheckoutAmount{Currency: "EUR", MinorUnit: 2, Value: int(TotalAmount)}})
+	response, checkout_err := SumupClient.Readers.CreateCheckout(context.Background(), *SumupAccount.MerchantProfile.MerchantCode, ReaderId, sumup.CreateReaderCheckoutBody{Description: Description, ReturnUrl: &returnUrl, TotalAmount: sumup.CreateReaderCheckoutAmount{Currency: "EUR", MinorUnit: 2, Value: int(TotalAmount)}})
 	if checkout_err != nil {
 		return "error", fmt.Errorf("[ERROR] SumUp API: error while creating reader checkout: %s\n", checkout_err.Error())
 	}

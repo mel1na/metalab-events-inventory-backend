@@ -7,6 +7,7 @@ import (
 	"metalab/events-inventory-tracker/sumup_integration"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -21,6 +22,7 @@ func CreatePurchase(c *gin.Context) {
 	var input CreatePurchaseInput
 	var finalCost uint = 0
 	var transaction_id string = ""
+	var transaction_description []string
 	returnedItemsArray := []models.Item{}
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -31,12 +33,17 @@ func CreatePurchase(c *gin.Context) {
 		item := FindItemById(v.ItemId)
 		finalCost += (item.Price * v.Quantity)
 		returnedItemsArray = append(returnedItemsArray, models.Item{ItemId: v.ItemId, Name: item.Name, Quantity: v.Quantity, Price: item.Price})
+		transaction_description = append(transaction_description, fmt.Sprintf("%dx %s", v.Quantity, item.Name))
 	}
 
 	finalCost += input.Tip
+	var final_transaction_description = strings.Join(transaction_description[:], ", ")
+	if input.Tip < 1 {
+		final_transaction_description += fmt.Sprintf(" + %.2f Tip", float64(input.Tip)/100)
+	}
 	if input.PaymentType == "card" {
 		var err error
-		transaction_id, err = sumup_integration.StartReaderCheckout(string(*FindReaderIdByName("Bar")), finalCost)
+		transaction_id, err = sumup_integration.StartReaderCheckout(string(*FindReaderIdByName("Bar")), finalCost, &final_transaction_description)
 		if err != nil {
 			fmt.Printf("error while creating reader checkout: %s\n", err.Error())
 			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
