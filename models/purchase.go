@@ -16,6 +16,7 @@ type Purchase struct {
 	Tip               uint                               `json:"tip,omitempty"`
 	FinalCost         uint                               `json:"final_cost"`
 	CreatedAt         time.Time                          `json:"created_at"`
+	CreatedBy         string                             `json:"created_by"`
 }
 
 // PaymentStatus: The status of the payment object gives information about the current state of the payment.

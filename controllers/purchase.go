@@ -50,7 +50,7 @@ func CreatePurchase(c *gin.Context) {
 			return
 		}
 	}
-	purchase := models.Purchase{Items: returnedItemsArray, PaymentType: input.PaymentType, TransactionId: transaction_id, TransactionStatus: sumup_models.TransactionFullStatusPending, Tip: input.Tip, FinalCost: finalCost}
+	purchase := models.Purchase{Items: returnedItemsArray, PaymentType: input.PaymentType, TransactionId: transaction_id, TransactionStatus: sumup_models.TransactionFullStatusPending, Tip: input.Tip, FinalCost: finalCost, CreatedBy: c.GetString("jwt-claim-sub")}
 	models.DB.Create(&purchase)
 
 	c.JSON(http.StatusOK, gin.H{"data": purchase})
