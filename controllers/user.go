@@ -9,6 +9,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/google/uuid"
 )
 
 type CreateUserInput struct {
@@ -23,12 +24,15 @@ func CreateUser(c *gin.Context) {
 		return
 	}
 
+	var userId uuid.UUID = uuid.New()
+
 	key := []byte(os.Getenv("JWT_SECRET"))
 	t := jwt.NewWithClaims(jwt.SigningMethodHS512, jwt.MapClaims{
-		"iss":   "metalab-events-backend",
-		"sub":   input.Name,
-		"iat":   time.Now().Unix(),
-		"admin": input.IsAdmin,
+		"iss":    "metalab-events-backend",
+		"sub":    input.Name,
+		"iat":    time.Now().Unix(),
+		"userid": userId,
+		"admin":  input.IsAdmin,
 	})
 	s, err := t.SignedString(key)
 	if err != nil {
@@ -36,7 +40,13 @@ func CreateUser(c *gin.Context) {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	} else {
-		user := models.User{Name: input.Name, Token: s, IsAdmin: input.IsAdmin}
+		creator_id, err := uuid.Parse(c.GetString("jwt-claim-userid"))
+		if err != nil {
+			fmt.Println(err)
+			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+		user := models.User{UserID: userId, Name: input.Name, Token: s, IsAdmin: input.IsAdmin, CreatedBy: creator_id}
 		result := models.DB.Create(&user)
 		if result.Error != nil {
 			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": "Bad Request"})

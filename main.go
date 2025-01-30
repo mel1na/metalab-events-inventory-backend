@@ -107,6 +107,7 @@ func validateSignedJwt(claim string, value string) gin.HandlerFunc {
 			// check if queried claims are in jwt claims
 			if claims[claim] == value {
 				c.Set("jwt-claim-sub", claims["sub"])
+				c.Set("jwt-claim-userid", claims["userid"])
 				c.Next()
 				return
 			} else {

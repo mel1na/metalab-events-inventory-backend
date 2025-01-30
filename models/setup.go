@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/google/uuid"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -28,19 +29,21 @@ func ConnectDatabase() {
 	database.AutoMigrate(&sumup_models.Reader{})
 
 	if database.Limit(1).Find(&User{Name: "admin"}).RowsAffected == 0 {
+		var userId uuid.UUID = uuid.New()
 
 		key := []byte(os.Getenv("JWT_SECRET"))
 		t := jwt.NewWithClaims(jwt.SigningMethodHS512, jwt.MapClaims{
-			"iss":   "metalab-events-backend",
-			"sub":   "admin",
-			"iat":   time.Now().Unix(),
-			"admin": "true",
+			"iss":    "metalab-events-backend",
+			"sub":    "admin",
+			"iat":    time.Now().Unix(),
+			"userid": userId,
+			"admin":  "true",
 		})
 		s, err := t.SignedString(key)
 		if err != nil {
 			fmt.Println(err)
 		} else {
-			database.Create(&User{Name: "admin", Token: s, IsAdmin: "true"})
+			database.Create(&User{UserID: userId, Name: "admin", Token: s, IsAdmin: "true", CreatedBy: uuid.Nil})
 			fmt.Printf("Default admin user created with token %s\n", s)
 		}
 	}

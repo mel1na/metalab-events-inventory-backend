@@ -13,6 +13,7 @@ type User struct {
 	Token     string         `json:"token"`
 	IsAdmin   string         `json:"is_admin" gorm:"default:false"`
 	CreatedAt time.Time      `json:"created_at"`
+	CreatedBy uuid.UUID      `json:"created_by"`
 	UpdatedAt time.Time      `json:"updated_at"`
 	DeletedAt gorm.DeletedAt `json:"deleted_at" gorm:"index"`
 }
