@@ -23,7 +23,9 @@ func CreatePurchase(c *gin.Context) {
 	var finalCost uint = 0
 	var client_transaction_id string = ""
 	var transaction_description []string
+	var transaction_status sumup_models.TransactionFullStatus
 	returnedItemsArray := []models.Item{}
+
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -43,6 +45,7 @@ func CreatePurchase(c *gin.Context) {
 	}
 	if input.PaymentType == "card" {
 		var err error
+		transaction_status = sumup_models.TransactionFullStatusPending
 		client_transaction_id, err = sumup_integration.StartReaderCheckout(string(*FindReaderIdByName("Bar")), finalCost, &final_transaction_description)
 		if err != nil {
 			fmt.Printf("error while creating reader checkout: %s\n", err.Error())
@@ -50,7 +53,10 @@ func CreatePurchase(c *gin.Context) {
 			return
 		}
 	}
-	purchase := models.Purchase{Items: returnedItemsArray, PaymentType: input.PaymentType, ClientTransactionId: client_transaction_id, TransactionStatus: sumup_models.TransactionFullStatusPending, Tip: input.Tip, FinalCost: finalCost, CreatedBy: c.GetString("jwt-claim-sub")}
+	if input.PaymentType == "cash" {
+		transaction_status = sumup_models.TransactionFullStatusSuccessful
+	}
+	purchase := models.Purchase{Items: returnedItemsArray, PaymentType: input.PaymentType, ClientTransactionId: client_transaction_id, TransactionStatus: transaction_status, Tip: input.Tip, FinalCost: finalCost, CreatedBy: c.GetString("jwt-claim-sub")}
 	models.DB.Create(&purchase)
 
 	c.JSON(http.StatusOK, gin.H{"data": purchase})
