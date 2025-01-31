@@ -225,7 +225,7 @@ func GetIncomingWebhook(c *gin.Context) {
 
 	insert_data := models.Purchase{TransactionStatus: input.Payload.Status}
 
-	models.DB.Where("transaction_id = ?", input.Payload.ClientTransactionId).Updates(insert_data)
+	models.DB.Where("client_transaction_id = ?", input.Payload.ClientTransactionId).Updates(insert_data)
 
 	c.JSON(http.StatusOK, gin.H{"data": "success"})
 }

@@ -12,7 +12,7 @@ type Purchase struct {
 	Items               []Item                             `json:"items" gorm:"foreignKey:ItemID;type:bytes;serializer:gob"`
 	PaymentType         string                             `json:"payment_type"`
 	TransactionStatus   sumup_models.TransactionFullStatus `json:"status"`
-	ClientTransactionId string                             `json:"transaction_id,omitempty"`
+	ClientTransactionId string                             `json:"client_transaction_id,omitempty"`
 	Tip                 uint                               `json:"tip,omitempty"`
 	FinalCost           uint                               `json:"final_cost"`
 	CreatedAt           time.Time                          `json:"created_at"`

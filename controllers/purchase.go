@@ -84,7 +84,7 @@ func FindPurchase(c *gin.Context) {
 
 func FindPurchaseByTransactionId(id string) (*models.Purchase, error) {
 	var purchase models.Purchase
-	if err := models.DB.Where("transaction_id = ?", id).First(&purchase).Error; err != nil {
+	if err := models.DB.Where("client_transaction_id = ?", id).First(&purchase).Error; err != nil {
 		return nil, err
 	}
 	return &purchase, nil
