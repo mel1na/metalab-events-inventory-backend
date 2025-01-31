@@ -40,7 +40,7 @@ func CreatePurchase(c *gin.Context) {
 
 	finalCost += input.Tip
 	var final_transaction_description = strings.Join(transaction_description[:], ", ")
-	if input.Tip < 1 {
+	if input.Tip > 0 {
 		final_transaction_description += fmt.Sprintf(" + %.2f Tip", float64(input.Tip)/100)
 	}
 	if input.PaymentType == "card" {
