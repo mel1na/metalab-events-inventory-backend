@@ -52,10 +52,12 @@ func main() {
 	router.PATCH("/api/users", validateSignedJwt("admin", "true"), controllers.UpdateUser)
 	router.DELETE("/api/users", validateSignedJwt("admin", "true"), controllers.DeleteUser)
 
+	// future improvement: switch websocket to sse (https://github.com/gin-gonic/examples/blob/master/server-sent-event/main.go)
 	router.GET("/api/payments", validateSignedJwt("iss", "metalab-events-backend"), controllers.HandleWebsocket)
 	router.POST("/api/payments/readers/link", validateSignedJwt("admin", "true"), controllers.CreateReader)
 	//router.POST("/api/payments/checkout", validateSignedJwt("iss", "metalab-events-backend"), controllers.CreateReaderCheckout)
-	router.GET("/api/payments/readers", validateSignedJwt("iss", "metalab-events-backend"), controllers.FindApiReaders)
+	router.GET("/api/payments/readers", validateSignedJwt("iss", "metalab-events-backend"), controllers.FindReaders)
+	router.GET("/api/payments/readers/api", validateSignedJwt("admin", "true"), controllers.FindApiReaders)
 	router.GET("/api/payments/readers/:id", validateSignedJwt("iss", "metalab-events-backend"), controllers.FindReader)
 	router.DELETE("/api/payments/terminate", validateSignedJwt("iss", "metalab-events-backend"), controllers.TerminateReaderCheckout)
 	router.DELETE("/api/payments/readers/unlink", validateSignedJwt("admin", "true"), controllers.UnlinkReader)

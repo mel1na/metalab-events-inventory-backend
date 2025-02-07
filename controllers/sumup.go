@@ -117,7 +117,6 @@ type TerminateReaderInput struct {
 	ReaderName string `json:"name"`
 }
 
-// TODO: handle failed transactions via callback from sumup api
 func TerminateReaderCheckout(c *gin.Context) {
 	var input TerminateReaderInput
 	if err := c.ShouldBindJSON(&input); err != nil {
