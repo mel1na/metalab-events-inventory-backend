@@ -39,8 +39,21 @@ func CreateReader(c *gin.Context) {
 }
 
 func FindReaders(c *gin.Context) {
-	var readers []sumup.Reader
+	var readers []sumup_models.Reader
 	err := models.DB.Find(&readers).Error
+
+	if err != nil {
+		fmt.Printf("error finding readers: %s\n", err.Error())
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"data": readers})
+}
+
+func FindReadyReaders(c *gin.Context) {
+	var readers []sumup_models.Reader
+	err := models.DB.Find(&readers).Where(&sumup_models.Reader{Status: sumup_models.ReaderStatusPaired}).Error
 
 	if err != nil {
 		fmt.Printf("error finding readers: %s\n", err.Error())

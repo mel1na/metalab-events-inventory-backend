@@ -56,7 +56,7 @@ func main() {
 	router.GET("/api/payments", validateSignedJwt("iss", "metalab-events-backend"), controllers.HandleWebsocket)
 	router.POST("/api/payments/readers/link", validateSignedJwt("admin", "true"), controllers.CreateReader)
 	//router.POST("/api/payments/checkout", validateSignedJwt("iss", "metalab-events-backend"), controllers.CreateReaderCheckout)
-	router.GET("/api/payments/readers", validateSignedJwt("iss", "metalab-events-backend"), controllers.FindReaders)
+	router.GET("/api/payments/readers", validateSignedJwt("iss", "metalab-events-backend"), controllers.FindReadyReaders)
 	router.GET("/api/payments/readers/api", validateSignedJwt("admin", "true"), controllers.FindApiReaders)
 	router.GET("/api/payments/readers/:id", validateSignedJwt("iss", "metalab-events-backend"), controllers.FindReader)
 	router.DELETE("/api/payments/terminate", validateSignedJwt("iss", "metalab-events-backend"), controllers.TerminateReaderCheckout)
