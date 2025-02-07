@@ -36,7 +36,7 @@ func StartReaderCheckout(ReaderId string, TotalAmount uint, Description *string)
 	return *response.Data.ClientTransactionId, nil
 }
 
-func CheckIfReaderIsReady(ReaderId string) {
+func InitiallyCheckIfReaderIsReady(ReaderId string) {
 	readerReady := false
 	count := 5
 	seconds_between := 5
@@ -53,16 +53,32 @@ func CheckIfReaderIsReady(ReaderId string) {
 			time.Sleep(time.Second * time.Duration(seconds_between))
 			continue
 		}
-		fmt.Printf("reader %s returned ready", ReaderId)
+		fmt.Printf("reader %s returned ready\n", ReaderId)
 		readerReady = true
 		break
 	}
 	if readerReady {
 		edited_reader := sumup_models.Reader{Status: sumup_models.ReaderStatusPaired}
 		models.DB.Where(&sumup_models.Reader{ReaderId: sumup_models.ReaderId(ReaderId)}).Updates(edited_reader)
-		fmt.Printf("reader %s is ready", ReaderId)
+		fmt.Printf("reader %s is ready\n", ReaderId)
 		return
 	}
-	fmt.Printf("reader %s not ready after waiting %d seconds", ReaderId, count*seconds_between)
+	fmt.Printf("reader %s not ready after waiting %d seconds\n", ReaderId, count*seconds_between)
 	return
+}
+
+func CheckIfReaderIsReady(ReaderId string) (isReady bool, Error error) {
+	reader, err := SumupClient.Readers.Get(context.Background(), *SumupAccount.MerchantProfile.MerchantCode, sumup.ReaderId(ReaderId), sumup.GetReaderParams{})
+	if err != nil {
+		fmt.Printf("error getting reader %s: %s\n", ReaderId, err.Error())
+		return false, err
+	}
+	if reader.Status != sumup.ReaderStatusPaired {
+		fmt.Printf("reader %s not ready\n", ReaderId)
+		return false, fmt.Errorf("reader not ready yet")
+	}
+	edited_reader := sumup_models.Reader{Status: sumup_models.ReaderStatusPaired}
+	models.DB.Where(&sumup_models.Reader{ReaderId: sumup_models.ReaderId(ReaderId)}).Updates(edited_reader)
+	fmt.Printf("reader %s returned ready\n", ReaderId)
+	return true, nil
 }
