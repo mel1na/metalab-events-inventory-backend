@@ -3,7 +3,10 @@ package sumup_integration
 import (
 	"context"
 	"fmt"
+	"metalab/events-inventory-tracker/models"
+	sumup_models "metalab/events-inventory-tracker/models/sumup"
 	"os"
+	"time"
 
 	"github.com/sumup/sumup-go"
 )
@@ -31,4 +34,35 @@ func StartReaderCheckout(ReaderId string, TotalAmount uint, Description *string)
 		return "error", fmt.Errorf("[ERROR] SumUp API: error while creating reader checkout: %s\n", checkout_err.Error())
 	}
 	return *response.Data.ClientTransactionId, nil
+}
+
+func CheckIfReaderIsReady(ReaderId string) {
+	readerReady := false
+	count := 5
+	seconds_between := 5
+	for i := 0; i <= count; i++ {
+		//response, err := SumupClient.Readers.List(context.Background(), *SumupAccount.MerchantProfile.MerchantCode)
+		reader, err := SumupClient.Readers.Get(context.Background(), *SumupAccount.MerchantProfile.MerchantCode, sumup.ReaderId(ReaderId), sumup.GetReaderParams{})
+		if err != nil {
+			fmt.Printf("error getting reader %s (interation %d/%d): %s\n", ReaderId, i, count, err.Error())
+			time.Sleep(time.Second * time.Duration(seconds_between))
+			continue
+		}
+		if reader.Status != sumup.ReaderStatusPaired {
+			fmt.Printf("reader %s not ready (interation %d/%d)\n", ReaderId, i, count)
+			time.Sleep(time.Second * time.Duration(seconds_between))
+			continue
+		}
+		fmt.Printf("reader %s returned ready", ReaderId)
+		readerReady = true
+		break
+	}
+	if readerReady {
+		edited_reader := sumup_models.Reader{Status: sumup_models.ReaderStatusPaired}
+		models.DB.Where(&sumup_models.Reader{ReaderId: sumup_models.ReaderId(ReaderId)}).Updates(edited_reader)
+		fmt.Printf("reader %s is ready", ReaderId)
+		return
+	}
+	fmt.Printf("reader %s not ready after waiting %d seconds", ReaderId, count*seconds_between)
+	return
 }
