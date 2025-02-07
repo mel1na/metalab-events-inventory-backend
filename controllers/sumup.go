@@ -217,6 +217,7 @@ func UnlinkReader(c *gin.Context) {
 }
 
 func GetIncomingWebhook(c *gin.Context) {
+	//After receiving a webhook call, your application must always verify if the event really took place, by calling a relevant SumUp's API.
 	var input sumup_models.ReaderCheckoutStatusChange
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -224,8 +225,12 @@ func GetIncomingWebhook(c *gin.Context) {
 	}
 
 	insert_data := models.Purchase{TransactionStatus: input.Payload.Status}
+	//fmt.Printf("incoming sumup webhook: %v", input.Payload)
 
 	models.DB.Where("client_transaction_id = ?", input.Payload.ClientTransactionId).Updates(insert_data)
 
+	notification := TransactionNotification{ClientTransactionId: input.Payload.ClientTransactionId, TransactionStatus: input.Payload.Status}
+
+	SendNotification(notification)
 	c.JSON(http.StatusOK, gin.H{"data": "success"})
 }

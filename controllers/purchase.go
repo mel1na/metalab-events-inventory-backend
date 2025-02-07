@@ -15,6 +15,7 @@ import (
 type CreatePurchaseInput struct {
 	Items       []models.Item `json:"items" binding:"required"`
 	PaymentType string        `json:"payment_type" binding:"required"`
+	ReaderId    string        `json:"reader_id"`
 	Tip         uint          `json:"tip"`
 }
 
@@ -46,7 +47,7 @@ func CreatePurchase(c *gin.Context) {
 	if input.PaymentType == "card" {
 		var err error
 		transaction_status = sumup_models.TransactionFullStatusPending
-		client_transaction_id, err = sumup_integration.StartReaderCheckout(string(*FindReaderIdByName("Bar")), finalCost, &final_transaction_description)
+		client_transaction_id, err = sumup_integration.StartReaderCheckout(input.ReaderId, finalCost, &final_transaction_description)
 		if err != nil {
 			fmt.Printf("error while creating reader checkout: %s\n", err.Error())
 			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
