@@ -35,6 +35,8 @@ func CreateReader(c *gin.Context) {
 	db_reader := sumup_models.Reader{ReaderId: sumup_models.ReaderId(reader.Id), Name: sumup_models.ReaderName(reader.Name), Status: sumup_models.ReaderStatus(reader.Status), Device: sumup_models.ReaderDevice{Identifier: reader.Device.Identifier, Model: sumup_models.ReaderDeviceModel(reader.Device.Model)}, CreatedAt: reader.CreatedAt, UpdatedAt: reader.UpdatedAt}
 	models.DB.Create(&db_reader)
 
+	sumup_integration.CheckIfReaderIsReady(string(reader.Id)) //polls the reader a few times to see if it is ready
+
 	c.JSON(http.StatusOK, gin.H{"data": db_reader})
 }
 
