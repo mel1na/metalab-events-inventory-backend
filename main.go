@@ -99,8 +99,7 @@ func validateSignedJwt(claim string, value string) gin.HandlerFunc {
 		}
 
 		// check if token is in db
-		var user models.User
-		if err := models.DB.Where("token = ?", parsed_jwt[1]).First(&user).Error; err != nil {
+		if err := models.DB.Where("token = ?", parsed_jwt[1]).First(&models.User{}).Error; err != nil {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
 			return
 		}
