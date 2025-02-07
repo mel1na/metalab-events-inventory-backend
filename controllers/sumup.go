@@ -27,15 +27,23 @@ func CreateReader(c *gin.Context) {
 	reader, err := sumup_integration.SumupClient.Readers.Create(context.Background(), *sumup_integration.SumupAccount.MerchantProfile.MerchantCode, sumup.CreateReaderBody{Name: input.Name, PairingCode: sumup.ReaderPairingCode(input.PairingCode)})
 	if err != nil {
 		fmt.Printf("error while creating reader: %s\n", err.Error())
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
 	//dbReader := sumup_models.Reader{ReaderID: string(reader.Id), ReaderName: string(reader.Name), ReaderDevice: sumup_models.ReaderDevice{Identifier: reader.Device.Identifier, Model: string(reader.Device.Model)}, ReaderStatus: string(reader.Status), ReaderCreatedAt: reader.CreatedAt, ReaderUpdatedAt: reader.UpdatedAt}
 	db_reader := sumup_models.Reader{ReaderId: sumup_models.ReaderId(reader.Id), Name: sumup_models.ReaderName(reader.Name), Status: sumup_models.ReaderStatus(reader.Status), Device: sumup_models.ReaderDevice{Identifier: reader.Device.Identifier, Model: sumup_models.ReaderDeviceModel(reader.Device.Model)}, CreatedAt: reader.CreatedAt, UpdatedAt: reader.UpdatedAt}
-	models.DB.Create(&db_reader)
 
-	sumup_integration.InitiallyCheckIfReaderIsReady(string(reader.Id)) //polls the reader a few times to see if it is ready
+	result, err := sumup_integration.InitiallyCheckIfReaderIsReady(string(reader.Id)) //polls the reader a few times to see if it is ready
+	if err != nil {
+		fmt.Printf("error while checking reader status: %s\n", err.Error())
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	db_reader.UpdatedAt = result.UpdatedAt
+	db_reader.Status = result.Status
+
+	models.DB.Create(&db_reader)
 
 	c.JSON(http.StatusOK, gin.H{"data": db_reader})
 }
