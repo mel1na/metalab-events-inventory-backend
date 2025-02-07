@@ -36,7 +36,7 @@ func StartReaderCheckout(ReaderId string, TotalAmount uint, Description *string)
 	return *response.Data.ClientTransactionId, nil
 }
 
-func InitiallyCheckIfReaderIsReady(ReaderId string) {
+func InitiallyCheckIfReaderIsReady(ReaderId string) (Result sumup_models.Reader, Error error) {
 	readerReady := false
 	count := 5
 	seconds_between := 5
@@ -67,7 +67,7 @@ func InitiallyCheckIfReaderIsReady(ReaderId string) {
 	return
 }
 
-func CheckIfReaderIsReady(ReaderId string) (isReady bool, Error error) {
+func CheckIfReaderIsReady(ReaderId string) (IsReady bool, Error error) {
 	reader, err := SumupClient.Readers.Get(context.Background(), *SumupAccount.MerchantProfile.MerchantCode, sumup.ReaderId(ReaderId), sumup.GetReaderParams{})
 	if err != nil {
 		fmt.Printf("error getting reader %s: %s\n", ReaderId, err.Error())
