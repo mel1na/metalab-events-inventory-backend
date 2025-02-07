@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"metalab/events-inventory-tracker/models"
 	sumup_models "metalab/events-inventory-tracker/models/sumup"
 	"net/http"
 
@@ -20,6 +21,10 @@ type TransactionNotification struct {
 	TransactionStatus   sumup_models.TransactionFullStatus `json:"transaction_status"`
 }
 
+type SuccessMessage struct {
+	Successful bool `json:"success"`
+}
+
 var clients = make(map[*websocket.Conn]bool)
 
 func HandleWebsocket(c *gin.Context) {
@@ -30,27 +35,48 @@ func HandleWebsocket(c *gin.Context) {
 		})
 		return
 	}
-	clients[conn] = true
+
+	clients[conn] = false
 	go handleWebSocketConnection(conn)
 }
 
 func handleWebSocketConnection(conn *websocket.Conn) {
 	for {
-		_, _, err := conn.ReadMessage()
-		if err != nil {
-			conn.Close()
-			delete(clients, conn)
-			break
+		if clients[conn] {
+			_, _, err := conn.ReadMessage()
+			if err != nil {
+				conn.Close()
+				delete(clients, conn)
+				break
+			}
+		} else if !clients[conn] {
+			_, msg, err := conn.ReadMessage()
+			if err != nil {
+				conn.Close()
+				delete(clients, conn)
+				break
+			}
+			if msg != nil {
+				if err := models.DB.Where(&models.User{Token: string(msg)}).First(&models.User{}).Error; err != nil {
+					conn.Close()
+					delete(clients, conn)
+					break
+				}
+				conn.WriteJSON(SuccessMessage{Successful: true})
+				clients[conn] = true
+			}
 		}
 	}
 }
 
 func SendNotification(notification TransactionNotification) {
 	for client := range clients {
-		err := client.WriteJSON(notification)
-		if err != nil {
-			client.Close()
-			delete(clients, client)
+		if clients[client] {
+			err := client.WriteJSON(notification)
+			if err != nil {
+				client.Close()
+				delete(clients, client)
+			}
 		}
 	}
 }
