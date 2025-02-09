@@ -41,16 +41,15 @@ func InitiallyCheckIfReaderIsReady(ReaderId string) (Result *sumup_models.Reader
 	count := 5
 	seconds_between := 5
 	for i := 0; i <= count; i++ {
+		time.Sleep(time.Second * time.Duration(seconds_between))
 		//response, err := SumupClient.Readers.List(context.Background(), *SumupAccount.MerchantProfile.MerchantCode)
 		reader, err := SumupClient.Readers.Get(context.Background(), *SumupAccount.MerchantProfile.MerchantCode, sumup.ReaderId(ReaderId), sumup.GetReaderParams{})
 		if err != nil {
 			fmt.Printf("error getting reader %s (interation %d/%d): %s\n", ReaderId, i, count, err.Error())
-			time.Sleep(time.Second * time.Duration(seconds_between))
 			continue
 		}
 		if reader.Status != sumup.ReaderStatusPaired {
 			fmt.Printf("reader %s not ready (iteration %d/%d)\n", ReaderId, i, count)
-			time.Sleep(time.Second * time.Duration(seconds_between))
 			continue
 		}
 		fmt.Printf("reader %s returned ready\n", ReaderId)
