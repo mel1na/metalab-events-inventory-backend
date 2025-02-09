@@ -217,6 +217,7 @@ func UnlinkReader(c *gin.Context) {
 		if delete_err := DeleteReaderByName(input.ReaderName); delete_err != nil {
 			fmt.Printf("error while deleting reader by name: %s\n", delete_err.Error())
 			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": delete_err.Error()})
+			return
 		}
 	} else if input.ReaderId != "" && input.ReaderName == "" { //name undefined
 		unlink_err := sumup_integration.SumupClient.Readers.DeleteReader(context.Background(), *sumup_integration.SumupAccount.MerchantProfile.MerchantCode, sumup.ReaderId(input.ReaderId))
@@ -229,6 +230,7 @@ func UnlinkReader(c *gin.Context) {
 		if delete_err := DeleteReaderById(input.ReaderId); delete_err != nil {
 			fmt.Printf("error while deleting reader by id: %s\n", delete_err.Error())
 			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": delete_err.Error()})
+			return
 		}
 	} else {
 		fmt.Printf("unknown error while unlinking reader\n")
