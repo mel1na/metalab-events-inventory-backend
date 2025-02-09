@@ -39,13 +39,14 @@ func CreateReader(c *gin.Context) {
 		fmt.Printf("error while checking reader status: %s\n", err.Error())
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
+	} else {
+		db_reader.Status = result.Status
+		db_reader.UpdatedAt = result.UpdatedAt
+
+		models.DB.Create(&db_reader)
+
+		c.JSON(http.StatusOK, gin.H{"data": db_reader})
 	}
-	db_reader.UpdatedAt = result.UpdatedAt
-	db_reader.Status = result.Status
-
-	models.DB.Create(&db_reader)
-
-	c.JSON(http.StatusOK, gin.H{"data": db_reader})
 }
 
 func FindReaders(c *gin.Context) {

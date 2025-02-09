@@ -36,7 +36,7 @@ func StartReaderCheckout(ReaderId string, TotalAmount uint, Description *string)
 	return *response.Data.ClientTransactionId, nil
 }
 
-func InitiallyCheckIfReaderIsReady(ReaderId string) (Result sumup_models.Reader, Error error) {
+func InitiallyCheckIfReaderIsReady(ReaderId string) (Result *sumup_models.Reader, Error error) {
 	readerReady := false
 	count := 5
 	seconds_between := 5
@@ -49,7 +49,7 @@ func InitiallyCheckIfReaderIsReady(ReaderId string) (Result sumup_models.Reader,
 			continue
 		}
 		if reader.Status != sumup.ReaderStatusPaired {
-			fmt.Printf("reader %s not ready (interation %d/%d)\n", ReaderId, i, count)
+			fmt.Printf("reader %s not ready (iteration %d/%d)\n", ReaderId, i, count)
 			time.Sleep(time.Second * time.Duration(seconds_between))
 			continue
 		}
@@ -61,10 +61,10 @@ func InitiallyCheckIfReaderIsReady(ReaderId string) (Result sumup_models.Reader,
 		edited_reader := sumup_models.Reader{Status: sumup_models.ReaderStatusPaired}
 		models.DB.Where(&sumup_models.Reader{ReaderId: sumup_models.ReaderId(ReaderId)}).Updates(edited_reader)
 		fmt.Printf("reader %s is ready\n", ReaderId)
-		return
+		return &edited_reader, nil
 	}
 	fmt.Printf("reader %s not ready after waiting %d seconds\n", ReaderId, count*seconds_between)
-	return
+	return nil, fmt.Errorf("reader %s not ready after waiting %d seconds\n", ReaderId, count*seconds_between)
 }
 
 func CheckIfReaderIsReady(ReaderId string) (IsReady bool, Error error) {
