@@ -26,10 +26,11 @@ func ConnectDatabase() {
 	database.AutoMigrate(&Purchase{})
 	database.AutoMigrate(&User{})
 	database.AutoMigrate(&Group{})
+	database.AutoMigrate(&Voucher{})
 	database.AutoMigrate(&sumup_models.Reader{})
 
 	if database.Limit(1).Find(&User{Name: "admin"}).RowsAffected == 0 {
-		var userId uuid.UUID = uuid.New()
+		userId := uuid.New()
 
 		key := []byte(os.Getenv("JWT_SECRET"))
 		t := jwt.NewWithClaims(jwt.SigningMethodHS512, jwt.MapClaims{
