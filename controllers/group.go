@@ -9,8 +9,9 @@ import (
 )
 
 type CreateGroupInput struct {
-	Name  string        `json:"name" binding:"required"`
-	Items []models.Item `json:"items" binding:"required"`
+	Name      string        `json:"name" binding:"required"`
+	Items     []models.Item `json:"items" binding:"required"`
+	IsVisible bool          `json:"visible" binding:"required"`
 }
 
 func CreateGroup(c *gin.Context) {
@@ -30,7 +31,7 @@ func CreateGroup(c *gin.Context) {
 		containedItemsArray = append(containedItemsArray, models.Item{ItemId: item.ItemId, Name: item.Name, Price: item.Price})
 	}
 
-	group := models.Group{Name: input.Name, Items: containedItemsArray}
+	group := models.Group{Name: input.Name, Items: containedItemsArray, IsVisible: input.IsVisible}
 	models.DB.Create(&group)
 
 	c.JSON(http.StatusOK, gin.H{"data": group})
@@ -79,7 +80,7 @@ func UpdateGroup(c *gin.Context) {
 		containedItemsArray = append(containedItemsArray, models.Item{ItemId: item.ItemId, Name: item.Name, Price: item.Price})
 	}
 
-	updatedGroup := models.Group{Name: input.Name, Items: containedItemsArray}
+	updatedGroup := models.Group{Name: input.Name, Items: containedItemsArray, IsVisible: input.IsVisible}
 
 	models.DB.Model(&group).Updates(&updatedGroup)
 	c.JSON(http.StatusOK, gin.H{"data": group})
