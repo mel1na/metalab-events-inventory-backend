@@ -13,7 +13,8 @@ type Purchase struct {
 	PaymentType         string                             `json:"payment_type"`
 	TransactionStatus   sumup_models.TransactionFullStatus `json:"status"`
 	ClientTransactionId string                             `json:"client_transaction_id,omitempty"`
-	Tip                 uint                               `json:"tip,omitempty"`
+	Tip                 uint                               `json:"tip"`
+	VoucherData         VoucherData                        `json:"voucher_data,omitempty" gorm:"foreignKey:VoucherID;type:bytes;serializer:gob"`
 	FinalCost           uint                               `json:"final_cost"`
 	CreatedAt           time.Time                          `json:"created_at"`
 	CreatedBy           string                             `json:"created_by"`
