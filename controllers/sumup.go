@@ -254,8 +254,8 @@ func GetIncomingWebhook(c *gin.Context) {
 
 	models.DB.Where("client_transaction_id = ?", input.Payload.ClientTransactionId).Updates(insert_data)
 
-	//notification := TransactionNotification{ClientTransactionId: input.Payload.ClientTransactionId, TransactionStatus: input.Payload.Status}
+	notification := TransactionNotification{ClientTransactionId: input.Payload.ClientTransactionId, TransactionStatus: input.Payload.Status}
 
-	stream.SendMessage(SSENotification{NotificationType: SSENotificationType(SSENotificationTransactionUpdate), NotificationData: SSENotificationPayload{TransactionPayload: &SSENotificationTransactionUpdatePayload{ClientTransactionId: input.Payload.TransactionId, TransactionStatus: input.Payload.Status}}})
+	SendNotification(notification)
 	c.JSON(http.StatusOK, gin.H{"data": "success"})
 }
