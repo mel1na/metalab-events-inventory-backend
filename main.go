@@ -24,9 +24,6 @@ func main() {
 	cors_config.AddAllowHeaders("Authorization")
 	router.Use(cors.New(cors_config))
 
-	trustedProxies := strings.Split(os.Getenv("GIN_TRUSTEDPROXIES"), ",")
-	router.SetTrustedProxies(trustedProxies)
-
 	models.ConnectDatabase()
 
 	sumup_integration.Login()
@@ -66,12 +63,11 @@ func main() {
 	router.DELETE("/api/payments/terminate", validateSignedJwt("iss", "metalab-events-backend"), controllers.TerminateReaderCheckout)
 	router.DELETE("/api/payments/readers/unlink", validateSignedJwt("admin", "true"), controllers.UnlinkReader)
 
-	router.GET("/api/events", controllers.SSEHeadersMiddleware(), controllers.NewServer().ServeHTTP())
 	router.POST("/api/payments/callback", controllers.GetIncomingWebhook)
 
 	router.GET("/api/token/validate", validateSignedJwt("iss", "metalab-events-backend"), controllers.ValidateToken)
 
-	router.Run(":8080")
+	router.Run("0.0.0.0:8080")
 }
 
 func validateSignedJwt(claim string, value string) gin.HandlerFunc {
