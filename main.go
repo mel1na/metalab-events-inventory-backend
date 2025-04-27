@@ -27,6 +27,7 @@ func main() {
 	models.ConnectDatabase()
 
 	sumup_integration.Login()
+	sumup_integration.InitAPIReaders()
 
 	router.POST("/api/items", validateSignedJwt("admin", "true"), controllers.CreateItem)
 	router.GET("/api/items", controllers.FindItems)
