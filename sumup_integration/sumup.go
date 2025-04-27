@@ -45,7 +45,7 @@ func InitAPIReaders() {
 		models.DB.Create(&api_reader)
 		readers_count++
 	}
-	fmt.Printf("Intitialized %d readers from API.\n", readers_count)
+	fmt.Printf("Intitialized %d reader(s) from API.\n", readers_count)
 }
 
 func StartReaderCheckout(ReaderId string, TotalAmount uint, Description *string) (ClientTransactionId string, Error error) {
