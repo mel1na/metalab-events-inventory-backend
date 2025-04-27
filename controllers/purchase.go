@@ -10,13 +10,15 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
 type CreatePurchaseInput struct {
-	Items       []models.Item `json:"items" binding:"required"`
-	PaymentType string        `json:"payment_type" binding:"required"`
-	ReaderId    string        `json:"reader_id"`
-	Tip         uint          `json:"tip"`
+	Items       []models.Item      `json:"items" binding:"required"`
+	PaymentType string             `json:"payment_type" binding:"required"`
+	ReaderId    string             `json:"reader_id"`
+	VoucherData models.VoucherData `json:"voucher_data"`
+	Tip         uint               `json:"tip"`
 }
 
 func CreatePurchase(c *gin.Context) {
@@ -34,9 +36,19 @@ func CreatePurchase(c *gin.Context) {
 
 	for _, v := range input.Items {
 		item := FindItemById(v.ItemId)
+		if item.Name == "No item found" {
+			c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": "itemid " + strconv.FormatUint(uint64(v.ItemId), 10) + " not found"})
+			return
+		}
 		finalCost += (item.Price * v.Quantity)
 		returnedItemsArray = append(returnedItemsArray, models.Item{ItemId: v.ItemId, Name: item.Name, Quantity: v.Quantity, Price: item.Price})
 		transaction_description = append(transaction_description, fmt.Sprintf("%dx %s", v.Quantity, item.Name))
+	}
+
+	if input.VoucherData.VoucherId != uuid.Nil {
+
+	} else {
+
 	}
 
 	finalCost += input.Tip

@@ -10,8 +10,8 @@ import (
 type Voucher struct {
 	VoucherId    uuid.UUID `json:"id" gorm:"primaryKey;unique;type:uuid;default:gen_random_uuid()"`
 	CreditAmount uint      `json:"credit_amount"`
-	ValidItems   []Item    `json:"valid_items"`
-	ValidGroups  []Group   `json:"valid_groups"`
+	ValidItems   []Item    `json:"valid_items" gorm:"foreignKey:ItemID;type:bytes;serializer:gob"`
+	ValidGroups  []Group   `json:"valid_groups" gorm:"foreignKey:GroupID;type:bytes;serializer:gob"`
 	//VoucherType VoucherType `json:"voucher_type,omitempty"`
 	CreatedAt time.Time      `json:"created_at"`
 	CreatedBy uuid.UUID      `json:"created_by"`
