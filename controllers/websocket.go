@@ -4,6 +4,7 @@ import (
 	"metalab/events-inventory-tracker/models"
 	sumup_models "metalab/events-inventory-tracker/models/sumup"
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
@@ -37,6 +38,7 @@ func HandleWebsocket(c *gin.Context) {
 	}
 
 	clients[conn] = false
+	conn.SetReadDeadline(time.Time{}) // zero date, no read deadline
 	go handleWebSocketConnection(conn)
 }
 
