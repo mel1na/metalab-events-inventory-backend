@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/sumup/sumup-go"
+	"gorm.io/gorm"
 )
 
 var SumupAccount *sumup.MerchantAccount
@@ -35,7 +36,7 @@ func InitAPIReaders() {
 	}
 
 	var readers []sumup_models.Reader
-	models.DB.Delete(&readers)
+	models.DB.Session(&gorm.Session{AllowGlobalUpdate: true}).Delete(&readers)
 
 	// lookup if readers are in db by reader id, create only non added ones.
 	readers_count := 0
