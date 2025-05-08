@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"metalab/events-inventory-tracker/models"
 	sumup_models "metalab/events-inventory-tracker/models/sumup"
@@ -256,6 +257,23 @@ func GetIncomingWebhook(c *gin.Context) {
 
 	//notification := TransactionNotification{ClientTransactionId: input.Payload.ClientTransactionId, TransactionStatus: input.Payload.Status}
 
-	stream.SendMessage(SSENotification{NotificationType: SSENotificationType(SSENotificationTransactionUpdate), NotificationData: SSENotificationPayload{TransactionPayload: &SSENotificationTransactionUpdatePayload{ClientTransactionId: input.Payload.TransactionId, TransactionStatus: input.Payload.Status}}})
+	notification := SSENotification{
+		NotificationType: SSENotificationType(SSENotificationTransactionUpdate),
+		NotificationData: SSENotificationPayload{
+			TransactionPayload: &SSENotificationTransactionUpdatePayload{
+				ClientTransactionId: input.Payload.TransactionId,
+				TransactionStatus:   input.Payload.Status,
+			},
+		},
+	}
+
+	notificationJSON, err := json.Marshal(notification)
+	if err != nil {
+		fmt.Printf("error marshalling notification: %s\n", err.Error())
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "failed to process notification"})
+		return
+	}
+
+	Stream.SendMessage(string(notificationJSON))
 	c.JSON(http.StatusOK, gin.H{"data": "success"})
 }

@@ -1,80 +1,26 @@
 package controllers
 
 import (
-	"encoding/json"
-	"fmt"
+	"io"
 	"log"
 	sumup_models "metalab/events-inventory-tracker/models/sumup"
-	"time"
 
 	"github.com/gin-gonic/gin"
 )
 
-// It keeps a list of clients those are currently attached
-// and broadcasting events to those clients.
 type Event struct {
-	// Events are pushed to this channel by the main events-gathering routine
-	Message chan string
-
-	// New client connections
-	NewClients chan chan string
-
-	// Closed client connections
+	Message       chan string
+	NewClients    chan chan string
 	ClosedClients chan chan string
-
-	// Total client connections
-	TotalClients map[chan string]bool
+	TotalClients  map[chan string]bool
 }
 
-// New event messages are broadcast to all registered client connection channels
 type ClientChan chan string
 
-// Initialize new streaming server
-var stream *Event = NewServer()
+var Stream *Event = NewServer()
 
-func main() {
-	// We are streaming current time to clients in the interval 10 seconds
-	go func() {
-		for {
-			time.Sleep(time.Second * 10)
-			now := time.Now().Format("2006-01-02 15:04:05")
-			currentTime := fmt.Sprintf("The Current Time Is %v", now)
-
-			// Send current time to clients message channel
-			stream.Message <- currentTime
-		}
-	}()
-
-	// Basic Authentication
-	/*authorized := router.Group("/", gin.BasicAuth(gin.Accounts{
-		"admin": "admin123", // username : admin, password : admin123
-	}))
-
-	// Authorized client can stream the event
-	// Add event-streaming headers
-	authorized.GET("/stream", HeadersMiddleware(), stream.serveHTTP(), func(c *gin.Context) {
-		v, ok := c.Get("clientChan")
-		if !ok {
-			return
-		}
-		clientChan, ok := v.(ClientChan)
-		if !ok {
-			return
-		}
-		c.Stream(func(w io.Writer) bool {
-			// Stream message to client from message channel
-			if msg, ok := <-clientChan; ok {
-				c.SSEvent("message", msg)
-				return true
-			}
-			return false
-		})
-	})*/
-}
-
-// Initialize event and start processing requests
-func NewServer() (event *Event) {
-	event = &Event{
+func NewServer() *Event {
+	event := &Event{
 		Message:       make(chan string),
 		NewClients:    make(chan chan string),
 		ClosedClients: make(chan chan string),
@@ -82,34 +28,26 @@ func NewServer() (event *Event) {
 	}
 
 	go event.listen()
-
-	return
+	return event
 }
 
-// It Listens all incoming requests from clients.
-// Handles addition and removal of clients and broadcast messages to clients.
-func (stream *Event) listen() {
+func (Stream *Event) listen() {
 	for {
 		select {
-		// Add new available client
-		case client := <-stream.NewClients:
-			stream.TotalClients[client] = true
-			log.Printf("Client added. %d registered clients", len(stream.TotalClients))
+		case client := <-Stream.NewClients:
+			Stream.TotalClients[client] = true
+			log.Printf("Client added. %d registered clients", len(Stream.TotalClients))
 
-		// Remove closed client
-		case client := <-stream.ClosedClients:
-			delete(stream.TotalClients, client)
+		case client := <-Stream.ClosedClients:
+			delete(Stream.TotalClients, client)
 			close(client)
-			log.Printf("Removed client. %d registered clients", len(stream.TotalClients))
+			log.Printf("Removed client. %d registered clients", len(Stream.TotalClients))
 
-		// Broadcast message to client
-		case eventMsg := <-stream.Message:
-			for clientMessageChan := range stream.TotalClients {
+		case eventMsg := <-Stream.Message:
+			for clientMessageChan := range Stream.TotalClients {
 				select {
 				case clientMessageChan <- eventMsg:
-					// Message sent successfully
 				default:
-					// Failed to send, dropping message
 				}
 			}
 		}
@@ -146,39 +84,10 @@ type SSENotificationPayload struct {
 	TransactionPayload *SSENotificationTransactionUpdatePayload
 }
 
-func (stream *Event) SendMessage(notification SSENotification) {
+func (Stream *Event) SendMessage(message string) {
 	go func() {
-		output, err := json.Marshal(notification)
-		if err == nil {
-			stream.Message <- string(output)
-		} else {
-			fmt.Printf("error while sending sse message: %s", err)
-		}
+		Stream.Message <- message
 	}()
-}
-
-func (stream *Event) ServeHTTP() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		// Initialize client channel
-		clientChan := make(ClientChan)
-
-		// Send new connection to event server
-		stream.NewClients <- clientChan
-
-		go func() {
-			<-c.Writer.CloseNotify()
-
-			// Drain client channel so that it does not block. Server may keep sending messages to this channel
-			for range clientChan {
-			}
-			// Send closed connection to event server
-			stream.ClosedClients <- clientChan
-		}()
-
-		c.Set("clientChan", clientChan)
-
-		c.Next()
-	}
 }
 
 func SSEHeadersMiddleware() gin.HandlerFunc {
@@ -190,3 +99,61 @@ func SSEHeadersMiddleware() gin.HandlerFunc {
 		c.Next()
 	}
 }
+
+func (Stream *Event) ServeHTTP() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		clientChan := make(ClientChan)
+		Stream.NewClients <- clientChan
+
+		go func() {
+			<-c.Writer.CloseNotify()
+			for range clientChan {
+			}
+			Stream.ClosedClients <- clientChan
+		}()
+
+		c.Stream(func(w io.Writer) bool {
+			if msg, ok := <-clientChan; ok {
+				c.SSEvent("message", msg)
+				return true
+			}
+			return false
+		})
+	}
+}
+
+/*func main() {
+	router := gin.Default()
+
+	router.Use(SSEHeadersMiddleware())
+
+	router.GET("/Stream", Stream.ServeHTTP())
+
+	go func() {
+		for {
+			time.Sleep(10 * time.Second)
+			now := time.Now().Format("2006-01-02 15:04:05")
+			message := fmt.Sprintf("Current time: %s", now)
+			Stream.SendMessage(message)
+		}
+	}()
+
+	router.POST("/send", func(c *gin.Context) {
+		var payload map[string]string
+		if err := c.ShouldBindJSON(&payload); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
+		message, ok := payload["message"]
+		if !ok {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Message field is required"})
+			return
+		}
+
+		Stream.SendMessage(message)
+		c.JSON(http.StatusOK, gin.H{"status": "Message sent"})
+	})
+
+	router.Run(":8080")
+}*/
