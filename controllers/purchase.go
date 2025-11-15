@@ -34,11 +34,7 @@ func CreatePurchase(c *gin.Context) {
 
 	for _, v := range input.Items {
 		item := FindItemById(v.ItemId)
-		if item.Price >= 0 {
-			finalCost += item.Price * int(v.Quantity)
-		} else {
-			finalCost -= item.Price * int(v.Quantity)
-		}
+		finalCost += item.Price * int(v.Quantity)
 		returnedItemsArray = append(returnedItemsArray, models.Item{ItemId: v.ItemId, Name: item.Name, Quantity: v.Quantity, Price: item.Price})
 		transactionDescription = append(transactionDescription, fmt.Sprintf("%dx %s", v.Quantity, item.Name))
 	}
@@ -52,6 +48,10 @@ func CreatePurchase(c *gin.Context) {
 		finalCost = 0
 	}
 	if input.PaymentType == "card" {
+		if finalCost <= 0 {
+			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Invalid purchase amount"})
+			return
+		}
 		var err error
 		transactionStatus = sumup_models.TransactionFullStatusPending
 		clientTransactionId, err = sumup_integration.StartReaderCheckout(input.ReaderId, uint(finalCost), &finalTransactionDescription)
