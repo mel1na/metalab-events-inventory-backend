@@ -21,7 +21,7 @@ type CreatePurchaseInput struct {
 
 func CreatePurchase(c *gin.Context) {
 	var input CreatePurchaseInput
-	var finalCost uint = 0
+	var finalCost int = 0
 	var clientTransactionId = ""
 	var transactionDescription []string
 	var transactionStatus sumup_models.TransactionFullStatus
@@ -35,18 +35,18 @@ func CreatePurchase(c *gin.Context) {
 	for _, v := range input.Items {
 		item := FindItemById(v.ItemId)
 		if item.Price >= 0 {
-			finalCost += uint(item.Price) * v.Quantity
+			finalCost += item.Price * int(v.Quantity)
 		} else {
-			finalCost -= uint(item.Price) * v.Quantity
+			finalCost -= item.Price * int(v.Quantity)
 		}
 		returnedItemsArray = append(returnedItemsArray, models.Item{ItemId: v.ItemId, Name: item.Name, Quantity: v.Quantity, Price: item.Price})
 		transactionDescription = append(transactionDescription, fmt.Sprintf("%dx %s", v.Quantity, item.Name))
 	}
 
-	finalCost += input.Tip
-	var final_transaction_description = strings.Join(transactionDescription[:], ", ")
+	finalCost += int(input.Tip)
+	var finalTransactionDescription = strings.Join(transactionDescription[:], ", ")
 	if input.Tip > 0 {
-		final_transaction_description += fmt.Sprintf(" + %.2f Tip", float64(input.Tip)/100)
+		finalTransactionDescription += fmt.Sprintf(" + %.2f Tip", float64(input.Tip)/100)
 	}
 	if finalCost < 0 {
 		finalCost = 0
@@ -54,7 +54,7 @@ func CreatePurchase(c *gin.Context) {
 	if input.PaymentType == "card" {
 		var err error
 		transactionStatus = sumup_models.TransactionFullStatusPending
-		clientTransactionId, err = sumup_integration.StartReaderCheckout(input.ReaderId, finalCost, &final_transaction_description)
+		clientTransactionId, err = sumup_integration.StartReaderCheckout(input.ReaderId, uint(finalCost), &finalTransactionDescription)
 		if err != nil {
 			fmt.Printf("error while creating reader checkout: %s\n", err.Error())
 			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -64,7 +64,7 @@ func CreatePurchase(c *gin.Context) {
 	if input.PaymentType == "cash" {
 		transactionStatus = sumup_models.TransactionFullStatusSuccessful
 	}
-	purchase := models.Purchase{Items: returnedItemsArray, PaymentType: input.PaymentType, ClientTransactionId: clientTransactionId, TransactionStatus: transactionStatus, Tip: input.Tip, FinalCost: finalCost, CreatedBy: c.GetString("jwt-claim-sub")}
+	purchase := models.Purchase{Items: returnedItemsArray, PaymentType: input.PaymentType, ClientTransactionId: clientTransactionId, TransactionStatus: transactionStatus, Tip: input.Tip, FinalCost: uint(finalCost), CreatedBy: c.GetString("jwt-claim-sub")}
 	models.DB.Create(&purchase)
 
 	c.JSON(http.StatusOK, gin.H{"data": purchase})
