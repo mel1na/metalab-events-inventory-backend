@@ -22,9 +22,9 @@ type CreatePurchaseInput struct {
 func CreatePurchase(c *gin.Context) {
 	var input CreatePurchaseInput
 	var finalCost uint = 0
-	var client_transaction_id string = ""
-	var transaction_description []string
-	var transaction_status sumup_models.TransactionFullStatus
+	var clientTransactionId = ""
+	var transactionDescription []string
+	var transactionStatus sumup_models.TransactionFullStatus
 	returnedItemsArray := []models.Item{}
 
 	if err := c.ShouldBindJSON(&input); err != nil {
@@ -34,20 +34,27 @@ func CreatePurchase(c *gin.Context) {
 
 	for _, v := range input.Items {
 		item := FindItemById(v.ItemId)
-		finalCost += (item.Price * v.Quantity)
+		if item.Price >= 0 {
+			finalCost += uint(item.Price) * v.Quantity
+		} else {
+			finalCost -= uint(item.Price) * v.Quantity
+		}
 		returnedItemsArray = append(returnedItemsArray, models.Item{ItemId: v.ItemId, Name: item.Name, Quantity: v.Quantity, Price: item.Price})
-		transaction_description = append(transaction_description, fmt.Sprintf("%dx %s", v.Quantity, item.Name))
+		transactionDescription = append(transactionDescription, fmt.Sprintf("%dx %s", v.Quantity, item.Name))
 	}
 
 	finalCost += input.Tip
-	var final_transaction_description = strings.Join(transaction_description[:], ", ")
+	var final_transaction_description = strings.Join(transactionDescription[:], ", ")
 	if input.Tip > 0 {
 		final_transaction_description += fmt.Sprintf(" + %.2f Tip", float64(input.Tip)/100)
 	}
+	if finalCost < 0 {
+		finalCost = 0
+	}
 	if input.PaymentType == "card" {
 		var err error
-		transaction_status = sumup_models.TransactionFullStatusPending
-		client_transaction_id, err = sumup_integration.StartReaderCheckout(input.ReaderId, finalCost, &final_transaction_description)
+		transactionStatus = sumup_models.TransactionFullStatusPending
+		clientTransactionId, err = sumup_integration.StartReaderCheckout(input.ReaderId, finalCost, &final_transaction_description)
 		if err != nil {
 			fmt.Printf("error while creating reader checkout: %s\n", err.Error())
 			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -55,9 +62,9 @@ func CreatePurchase(c *gin.Context) {
 		}
 	}
 	if input.PaymentType == "cash" {
-		transaction_status = sumup_models.TransactionFullStatusSuccessful
+		transactionStatus = sumup_models.TransactionFullStatusSuccessful
 	}
-	purchase := models.Purchase{Items: returnedItemsArray, PaymentType: input.PaymentType, ClientTransactionId: client_transaction_id, TransactionStatus: transaction_status, Tip: input.Tip, FinalCost: finalCost, CreatedBy: c.GetString("jwt-claim-sub")}
+	purchase := models.Purchase{Items: returnedItemsArray, PaymentType: input.PaymentType, ClientTransactionId: clientTransactionId, TransactionStatus: transactionStatus, Tip: input.Tip, FinalCost: finalCost, CreatedBy: c.GetString("jwt-claim-sub")}
 	models.DB.Create(&purchase)
 
 	c.JSON(http.StatusOK, gin.H{"data": purchase})
@@ -118,11 +125,18 @@ func UpdatePurchase(c *gin.Context) {
 		if item.Name == "No item found" {
 			c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": "itemid " + strconv.FormatUint(uint64(v.ItemId), 10) + " not found"})
 		}
-		finalCost += (item.Price * v.Quantity)
+		if item.Price >= 0 {
+			finalCost += uint(item.Price) * v.Quantity
+		} else {
+			finalCost -= uint(item.Price) * v.Quantity
+		}
 		returnArray = append(returnArray, models.Item{ItemId: v.ItemId, Name: item.Name, Quantity: v.Quantity, Price: item.Price})
 	}
 
 	finalCost += input.Tip
+	if finalCost < 0 {
+		finalCost = 0
+	}
 	updatedPurchase := models.Purchase{Items: returnArray, PaymentType: input.PaymentType, Tip: input.Tip, FinalCost: finalCost}
 
 	models.DB.Model(&purchase).Updates(&updatedPurchase)

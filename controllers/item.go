@@ -10,7 +10,7 @@ import (
 type CreateItemInput struct {
 	Name     string `json:"name" binding:"required"`
 	Quantity uint   `json:"quantity"`
-	Price    uint   `json:"price"` //not required so price can be set to 0 and still work
+	Price    int    `json:"price"` //not required so price can be set to 0 and still work
 }
 
 func CreateItem(c *gin.Context) {
@@ -59,7 +59,7 @@ func FindItemById(id uint) models.Item {
 type UpdateItemInput struct {
 	Name     string `json:"name" binding:"required"`
 	Quantity uint   `json:"quantity"`
-	Price    uint   `json:"price"` //not required so price can be set to 0 and still work
+	Price    int    `json:"price"` //not required so price can be set to 0 and still work
 }
 
 func UpdateItem(c *gin.Context) {
